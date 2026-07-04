@@ -651,6 +651,19 @@ def backfill_catalog() -> dict:
     return {"created_entries": created}
 
 
+@app.post("/catalog/{canonical_id}/dismiss-suggestion")
+def dismiss_promote_suggestion(canonical_id: str) -> dict:
+    """Patch §6: dismissing a wrong promote-suggestion removes it from the
+    Career Growth report entirely (filtered in aggregate_market_fit before
+    the Gemini synthesis call), not just hidden client-side."""
+    entry = store.get_catalog_entry(canonical_id)
+    if entry is None:
+        raise HTTPException(404, "Not found")
+    entry.promote_suggestion_dismissed = True
+    store.save_catalog_entry(entry)
+    return {"dismissed": canonical_id}
+
+
 @app.get("/study-guide", response_model=list[StudyGuideEntry])
 def list_study_guides() -> list[StudyGuideEntry]:
     return store.list_study_guides()

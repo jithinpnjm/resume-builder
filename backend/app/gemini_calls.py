@@ -338,8 +338,10 @@ real course syllabus. Use Google Search for everything current - never rely on m
 URLs, book editions, or repo names. {source_preferences}
 
 Research and write up (plain prose, include full URLs inline):
-1. At least one genuinely authoritative BOOK on this topic - real title, real authors,
-   and a specific reason it's the right one for this role level (not "a popular book").
+1. At least one genuinely authoritative BOOK on this topic - real title, real authors, and
+   a specific reason it's right for this role level. Search for its O'Reilly catalog page
+   ({oreilly_note}) and include the URL. If genuinely not on O'Reilly, find its publisher
+   or a well-established bookseller page instead - never leave a book without a URL.
 2. A real progression of 3-4 steps: foundational concepts -> a hands-on lab that reuses
    the candidate's existing skills where possible -> operate-it-like-production
    (failure simulation, what an SRE watches) -> interview-readiness. Each step needs a
@@ -351,6 +353,10 @@ Research and write up (plain prose, include full URLs inline):
    talks for operational nuance. Full URLs inline for everything.
 5. Honest interview talking points - lab-level exposure framed as lab-level, unless the
    candidate's history shows real production experience.
+6. If a structured course/portal (O'Reilly Learning Platform, A Cloud Guru, KodeKloud,
+   Linux Foundation Training, Coursera, Pluralsight) has strong, currently-available
+   coverage of this topic, include it as a "portal" resource with a real, verified URL -
+   this candidate uses structured platforms, not only ad-hoc blog posts.
 
 Requirement: {requirement}
 Why it matters to this candidate (demand context): {why_it_matters}
@@ -362,12 +368,12 @@ _CURATOR_STRUCTURE_PROMPT = """Convert this research write-up into JSON matching
 {
   "canonical_id": "",
   "why_it_matters": "",
-  "recommended_books": [ { "title": "", "authors": "", "why": "" } ],
+  "recommended_books": [ { "title": "", "authors": "", "why": "", "oreilly_url": "", "publisher_url": "" } ],
   "steps": [
     {
       "step_number": 1, "title": "", "goal": "",
       "concepts": [""],
-      "resources": [{ "type": "docs|blog|course|video", "title": "", "url": "", "source": "official|medium|linkedin|tldr|udemy|github|other" }],
+      "resources": [{ "type": "docs|blog|course|video|book|portal|repo", "title": "", "url": "", "source": "official|medium|linkedin|tldr|udemy|oreilly|acloudguru|kodekloud|github|other" }],
       "hands_on_lab": { "title": "", "repo_url": "", "why_this_lab": "", "est_hours": 4 },
       "sample_project": { "title": "", "repo_url": "", "description": "" },
       "interview_talking_points": [""],
@@ -377,9 +383,11 @@ _CURATOR_STRUCTURE_PROMPT = """Convert this research write-up into JSON matching
 }
 
 Rules: only include URLs that literally appear in the research text - never invent or
-"fix" a URL. recommended_books must carry the real title/authors from the research.
-hands_on_lab/sample_project may be null on steps where they don't apply. Goals must be
-checkable actions, not vague intentions. Return ONLY the JSON object.
+"fix" a URL. recommended_books must carry the real title/authors from the research, plus
+oreilly_url if an O'Reilly catalog page was found, else publisher_url as the fallback -
+never leave both empty if the research found ANY book URL. hands_on_lab/sample_project
+may be null on steps where they don't apply. Goals must be checkable actions, not vague
+intentions. Return ONLY the JSON object.
 """
 
 
@@ -388,14 +396,21 @@ def curate_study_guide_research(
     why_it_matters: str,
     skills: list[str],
     source_preferences: str = "",
+    oreilly_access: bool = False,
 ) -> str:
     from .gemini_client import generate_grounded_text
 
+    oreilly_note = (
+        "the user has O'Reilly/Safari access, so this is worth doing"
+        if oreilly_access
+        else "only if it exists — the user hasn't confirmed O'Reilly access"
+    )
     prompt = _CURATOR_RESEARCH_PROMPT.format(
         requirement=requirement,
         why_it_matters=why_it_matters,
         skills=", ".join(skills),
         source_preferences=source_preferences,
+        oreilly_note=oreilly_note,
     )
     return generate_grounded_text(prompt)
 
@@ -411,16 +426,36 @@ def structure_study_guide(research_text: str, canonical_id: str) -> dict:
 # a ranked, readable narrative. It does not decide what counts as a gap.
 # ---------------------------------------------------------------------------
 
-_MARKET_FIT_SYSTEM_PROMPT = """You are synthesizing a job-market fit report for a Senior Cloud/DevOps/
-SRE engineer from PRE-COMPUTED aggregation data. Do not re-derive or second-guess the
-counts - rank and explain them. Return ONLY JSON matching:
+_MARKET_FIT_SYSTEM_PROMPT = """You are a career advisor giving a Senior Cloud/DevOps/
+SRE/MLOps engineer a genuinely useful read on their job-market position - not a status
+report generator. Work from PRE-COMPUTED aggregation data; do not re-derive counts.
 
+CRITICAL - group before you write:
+- Cluster related requirements into THEMES before producing output (e.g. "ML
+  orchestration frameworks," "feature stores," and "ML lifecycle tooling" are
+  one theme: "MLOps tooling"; "Datadog for observability" alongside
+  Prometheus/Grafana gaps would be one theme: "Observability tooling").
+  Each theme should read as one coherent insight, not a pile of near-duplicate
+  bullets. Assign every item a `theme` field.
+- Vary your sentence structure. Do not reuse the same phrasing pattern across
+  items - write the way a sharp colleague would talk through this over coffee,
+  not the way a compliance report reads. Each item should sound like a
+  distinct observation, not a mail-merged template.
+- Be direct and specific, not padded. If something is a one-off, say so
+  plainly instead of dressing it up with a full sentence of hedging.
+
+The promotable-experience input already carries each item's canonical_id - copy it
+through verbatim into your output, never invent or omit it.
+
+Return ONLY valid JSON matching:
 {
   "top_recurring_gaps": [
-    { "requirement": "", "times_required": 0, "times_gapped": 0, "priority": "high|medium|low", "reasoning": "" }
+    { "requirement": "", "theme": "", "times_required": 0, "times_gapped": 0,
+      "priority": "high|medium|low", "reasoning": "" }
   ],
   "promotable_experience_not_yet_in_base_resume": [
-    { "requirement": "", "confirmed_in_applications": 0, "suggested_action": "" }
+    { "requirement": "", "canonical_id": "", "theme": "",
+      "confirmed_in_applications": 0, "suggested_action": "" }
   ],
   "resume_structural_suggestions": [ { "detail": "" } ],
   "study_plan_priority_ranked": ["requirement names, most urgent first"]

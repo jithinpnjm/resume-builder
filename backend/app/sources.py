@@ -50,6 +50,19 @@ def medium_tag_feed(topic: str, limit: int = 5) -> list[dict]:
 def source_preferences(settings: UserSettings) -> str:
     """Flavor text for the search-grounded curator prompt."""
     parts = []
+    if settings.oreilly_access:
+        parts.append(
+            "the user has O'Reilly/Safari Books Online access — for every "
+            "recommended book, search for its O'Reilly catalog page "
+            "(learning.oreilly.com or oreilly.com) and include that URL; "
+            "fall back to the publisher or a well-known bookseller page only "
+            "if it's not on O'Reilly"
+        )
+    if settings.preferred_portals:
+        parts.append(
+            "prefer structured courses from these platforms when relevant: "
+            + ", ".join(settings.preferred_portals)
+        )
     if settings.medium_url:
         parts.append(f"prefer medium.com articles (user's profile: {settings.medium_url})")
     if settings.linkedin_url:
@@ -97,6 +110,16 @@ def validate_urls_in_guide(entry: StudyGuideEntry) -> StudyGuideEntry:
                 if not check(step.sample_project.repo_url):
                     step.sample_project.repo_url = ""
                     all_ok = False
+
+        # Books never had a URL to validate before §2 added oreilly_url/
+        # publisher_url — check those too, same drop-if-dead policy.
+        for book in entry.recommended_books:
+            if book.oreilly_url and not check(book.oreilly_url):
+                book.oreilly_url = ""
+                all_ok = False
+            if book.publisher_url and not check(book.publisher_url):
+                book.publisher_url = ""
+                all_ok = False
 
     entry.url_validation_status = "all_checked" if all_ok else "some_stale"
     return entry

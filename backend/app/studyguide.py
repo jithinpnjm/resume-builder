@@ -41,7 +41,11 @@ def curate(canonical_id: str) -> StudyGuideEntry:
         )
 
     research = gemini_calls.curate_study_guide_research(
-        entry.canonical_name, _why_it_matters(entry), skills_master(resume), prefs
+        entry.canonical_name,
+        _why_it_matters(entry),
+        skills_master(resume),
+        prefs,
+        oreilly_access=settings.oreilly_access,
     )
     structured = gemini_calls.structure_study_guide(research, canonical_id)
     guide = StudyGuideEntry.model_validate(structured)

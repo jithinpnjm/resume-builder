@@ -198,6 +198,22 @@ export function StudyGuidePage() {
               {guide.recommended_books.map((b, i) => (
                 <p key={i}>
                   <em>{b.title}</em> — {b.authors}
+                  {b.oreilly_url && (
+                    <>
+                      {" · "}
+                      <a href={b.oreilly_url} target="_blank" rel="noreferrer">
+                        O'Reilly
+                      </a>
+                    </>
+                  )}
+                  {!b.oreilly_url && b.publisher_url && (
+                    <>
+                      {" · "}
+                      <a href={b.publisher_url} target="_blank" rel="noreferrer">
+                        Publisher
+                      </a>
+                    </>
+                  )}
                   <br />
                   <span className="muted">{b.why}</span>
                 </p>
@@ -280,10 +296,36 @@ export function StudyGuidePage() {
 // Career Growth — match-rate trend + recurring gaps + promotables
 // ---------------------------------------------------------------------------
 
+function groupBy<T>(items: T[], key: (item: T) => string): Record<string, T[]> {
+  const out: Record<string, T[]> = {};
+  for (const item of items) {
+    const k = key(item) || "Other";
+    (out[k] ??= []).push(item);
+  }
+  return out;
+}
+
+const THEME_VISIBLE_CAP = 3;
+
+function ThemeItems<T>({ items, render }: { items: T[]; render: (item: T) => React.ReactNode }) {
+  const [expanded, setExpanded] = useState(false);
+  const visible = expanded ? items : items.slice(0, THEME_VISIBLE_CAP);
+  const remaining = items.length - visible.length;
+  return (
+    <>
+      {visible.map(render)}
+      {remaining > 0 && (
+        <button onClick={() => setExpanded(true)}>Show {remaining} more</button>
+      )}
+    </>
+  );
+}
+
 export function CareerGrowthPage() {
   const [report, setReport] = useState<MarketFitReport | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
 
   async function load(refresh: boolean) {
     setBusy(true);
@@ -301,7 +343,22 @@ export function CareerGrowthPage() {
     load(false);
   }, []);
 
+  async function dismissSuggestion(canonicalId: string) {
+    if (!canonicalId) return;
+    try {
+      await api.dismissPromoteSuggestion(canonicalId);
+      setDismissed((prev) => new Set(prev).add(canonicalId));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Dismiss failed");
+    }
+  }
+
   const points = (report?.match_rate_trend ?? []).filter((p) => p.match_pct !== null);
+  const gapsByTheme = groupBy(report?.top_recurring_gaps ?? [], (g) => g.theme || "Other");
+  const promotableVisible = (report?.promotable_experience_not_yet_in_base_resume ?? []).filter(
+    (p) => !p.dismissed && !dismissed.has(p.canonical_id)
+  );
+  const promotableByTheme = groupBy(promotableVisible, (p) => p.theme || "Other");
 
   return (
     <div>
@@ -359,37 +416,70 @@ export function CareerGrowthPage() {
           </section>
 
           <section>
+            <h2>The short version</h2>
+            <p className="muted">
+              {Object.keys(gapsByTheme).length} theme{Object.keys(gapsByTheme).length === 1 ? "" : "s"} worth
+              your attention, {Object.keys(promotableByTheme).length} thing
+              {Object.keys(promotableByTheme).length === 1 ? "" : "s"} already confirmed that
+              your resume doesn't mention yet.
+            </p>
+          </section>
+
+          <section>
             <h2>Top recurring gaps</h2>
-            {report.top_recurring_gaps.length === 0 && <p className="muted">None yet.</p>}
-            {report.top_recurring_gaps.map((g) => (
-              <div key={g.requirement} className="card gap-card gap-no_experience">
-                <strong>{g.requirement}</strong>{" "}
-                <span className={`pill ${g.priority === "high" ? "no_experience" : "partial_experience"}`}>
-                  {g.priority}
-                </span>
-                <p className="muted num">
-                  required {g.times_required}× · gapped {g.times_gapped}×
-                </p>
-                <p>{g.reasoning}</p>
+            {Object.keys(gapsByTheme).length === 0 && <p className="muted">None yet.</p>}
+            {Object.entries(gapsByTheme).map(([theme, items]) => (
+              <div key={theme} className="card">
+                <h3>{theme}</h3>
+                <ThemeItems
+                  items={items}
+                  render={(g) => (
+                    <p key={g.requirement}>
+                      <strong>{g.requirement}</strong>{" "}
+                      <span className={`pill ${g.priority === "high" ? "no_experience" : "partial_experience"}`}>
+                        {g.priority}
+                      </span>{" "}
+                      <span className="muted num">
+                        required {g.times_required}× · gapped {g.times_gapped}×
+                      </span>
+                      <br />
+                      <span className="muted">{g.reasoning}</span>
+                    </p>
+                  )}
+                />
               </div>
             ))}
           </section>
 
           <section>
             <h2>Confirmed but not in your base resume</h2>
-            {report.promotable_experience_not_yet_in_base_resume.length === 0 && (
+            {Object.keys(promotableByTheme).length === 0 && (
               <p className="muted">Nothing waiting for promotion.</p>
             )}
-            {report.promotable_experience_not_yet_in_base_resume.map((p) => (
-              <div key={p.requirement} className="card">
-                <strong>{p.requirement}</strong>{" "}
-                <span className="muted num">confirmed {p.confirmed_in_applications}×</span>
-                <p>{p.suggested_action}</p>
-                <p className="muted">
-                  Promote from the application's Finalize screen (Promote to base resume).
-                </p>
+            {Object.entries(promotableByTheme).map(([theme, items]) => (
+              <div key={theme} className="card">
+                <h3>{theme}</h3>
+                <ThemeItems
+                  items={items}
+                  render={(p) => (
+                    <div key={p.requirement} className="bullet-row">
+                      <div>
+                        <strong>{p.requirement}</strong>{" "}
+                        <span className="muted num">confirmed {p.confirmed_in_applications}×</span>
+                        <br />
+                        <span className="muted">{p.suggested_action}</span>
+                      </div>
+                      <button className="danger-ghost" onClick={() => dismissSuggestion(p.canonical_id)}>
+                        Not accurate — dismiss
+                      </button>
+                    </div>
+                  )}
+                />
               </div>
             ))}
+            <p className="muted">
+              Promote from the application's Finalize screen (Promote to base resume).
+            </p>
           </section>
 
           {report.resume_structural_suggestions.length > 0 && (
@@ -413,13 +503,19 @@ export function CareerGrowthPage() {
 // ---------------------------------------------------------------------------
 
 const NEWSLETTERS = ["TLDR DevOps", "TLDR AI", "TLDR InfoSec", "Last Week in AWS", "KubeWeekly"];
+const PORTAL_SEED_OPTIONS = [
+  "A Cloud Guru", "KodeKloud", "Linux Foundation Training", "Coursera", "Pluralsight", "Udemy",
+];
 
 export function SettingsPage() {
   const [settings, setSettings] = useState<UserSettings>({
     linkedin_url: "",
     medium_url: "",
     newsletters: [],
+    oreilly_access: false,
+    preferred_portals: [],
   });
+  const [customPortal, setCustomPortal] = useState("");
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -460,6 +556,63 @@ export function SettingsPage() {
           placeholder="https://medium.com/@…"
         />
       </label>
+
+      <section>
+        <h2>Book sources</h2>
+        <label className="core-toggle">
+          <input
+            type="checkbox"
+            checked={settings.oreilly_access}
+            onChange={(e) => setSettings({ ...settings, oreilly_access: e.target.checked })}
+          />
+          I have O'Reilly / Safari Books Online access
+        </label>
+        <p className="muted">
+          When checked, recommended books in the Study Guide link to their O'Reilly catalog
+          page instead of a publisher/bookseller page.
+        </p>
+      </section>
+
+      <section>
+        <h2>Preferred course portals</h2>
+        <p className="muted">Toggle the platforms you actually use, or add your own below.</p>
+        {[...new Set([...PORTAL_SEED_OPTIONS, ...settings.preferred_portals])].map((p) => (
+          <label key={p} className="core-toggle">
+            <input
+              type="checkbox"
+              checked={settings.preferred_portals.includes(p)}
+              onChange={(e) =>
+                setSettings({
+                  ...settings,
+                  preferred_portals: e.target.checked
+                    ? [...settings.preferred_portals, p]
+                    : settings.preferred_portals.filter((x) => x !== p),
+                })
+              }
+            />
+            {p}
+          </label>
+        ))}
+        <div className="gap-actions">
+          <input
+            placeholder="Add another portal…"
+            value={customPortal}
+            onChange={(e) => setCustomPortal(e.target.value)}
+          />
+          <button
+            onClick={() => {
+              const name = customPortal.trim();
+              if (name && !settings.preferred_portals.includes(name)) {
+                setSettings({ ...settings, preferred_portals: [...settings.preferred_portals, name] });
+              }
+              setCustomPortal("");
+            }}
+          >
+            Add
+          </button>
+        </div>
+      </section>
+
       <section>
         <h2>Newsletters you read</h2>
         {NEWSLETTERS.map((n) => (
