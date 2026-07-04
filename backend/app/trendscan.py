@@ -11,8 +11,13 @@ import os
 import uuid
 from datetime import datetime, timezone
 
-from . import catalog, gemini_calls, store, studyguide
-from .gaps import detect_gaps, skills_master
+from . import catalog, gemini_calls, role_fit, store, studyguide
+from .gaps import (
+    compute_skill_match_pct,
+    detect_gaps,
+    skills_master,
+    suppress_false_positive_gaps,
+)
 from .schemas import TrendGapItem, TrendScanBatch
 
 BQ_DATASET = os.environ.get("BQ_DATASET", "resume_agent_analytics")
@@ -50,17 +55,35 @@ def run_scan(postings: list[str]) -> TrendScanBatch:
     review_by_canonical: dict[str, TrendGapItem] = {}
     auto_counted: list[str] = []
     role_titles: list[str] = []
+    skipped_postings: list[dict] = []
     score_before: dict[str, float] = {e.canonical_id: e.priority_score for e in store.list_catalog()}
 
     for jd_text in postings:
         if not jd_text.strip():
             continue
         jd = gemini_calls.analyze_jd(jd_text)
+
+        # Role-fit gate (patch §1), per posting — not per batch. One posting
+        # in a batch of five might be a fit and the rest not; a "skip" here
+        # excludes ONLY this posting (no gap detection, no catalog writes),
+        # the rest of the batch still runs.
+        skill_match_pct = compute_skill_match_pct(resume, jd)
+        fit = role_fit.assess(jd, skill_match_pct)
+        if fit.decision == "skip":
+            skipped_postings.append(
+                {"role_title": jd.role_title or "?", "reason": fit.decision_reason}
+            )
+            continue
+        # "warn" postings still proceed — role_titles only tracks processed
+        # postings so the batch header reflects what was actually reviewed.
         role_titles.append(jd.role_title or "?")
 
         # Gap detection against the resume decides what's worth reviewing;
         # requirements the resume already covers still count as demand signal.
         gaps = detect_gaps(resume, jd, jd_text)
+        # Patch §4b: semantic double-check — can only remove false-positive
+        # gaps already substantively covered under a different name/tool.
+        gaps = suppress_false_positive_gaps(gaps, resume)
         gapped = {g.requirement for g in gaps}
 
         # ONE canonicalization call for this whole posting's requirements,
@@ -113,6 +136,7 @@ def run_scan(postings: list[str]) -> TrendScanBatch:
         role_titles=role_titles,
         review_items=list(review_by_canonical.values()),
         auto_counted=auto_counted,
+        skipped_postings=skipped_postings,
     )
     save_batch(batch)
     _write_trend_events(batch, score_before)  # demand events exist even before review

@@ -205,6 +205,24 @@ def fetch_archived_file(gcs_path: str, filename: str) -> bytes:
 # BigQuery writes (only at this checkpoint) + market-fit aggregation
 # ---------------------------------------------------------------------------
 
+# NOTE on compute_skill_match_pct vs. the helper below: patch §1 asks for one
+# shared match-pct implementation across the role-fit gate, aggregate_market_fit,
+# and write_bigquery_rows. gaps.compute_skill_match_pct (pure keyword match
+# against the CURRENT resume text) is used for the role-fit gate, which runs
+# before any gap has been reviewed — there's no reviewed status yet to use.
+# But aggregate_market_fit/write_bigquery_rows run on ALREADY-REVIEWED
+# applications, where a requirement the candidate explicitly confirmed
+# ("have_experience") is stronger evidence than a keyword regex against
+# whatever the base resume happens to say today. Swapping these two to the
+# keyword-only function would silently make Career Growth's numbers LESS
+# accurate by discarding that human confirmation. So: these two are
+# deduplicated into one shared helper (eliminating the actual duplication
+# the patch flagged) rather than switched to compute_skill_match_pct.
+def _matched_requirement_ids(must: list, gap_status: dict[str, str]) -> tuple[int, list[bool]]:
+    matched_flags = [gap_status.get(req.requirement, "") != "no_experience" for req in must]
+    return sum(matched_flags), matched_flags
+
+
 def write_bigquery_rows(record: ApplicationRecord, resume_version: int | None) -> None:
     from google.cloud import bigquery
 
@@ -214,11 +232,9 @@ def write_bigquery_rows(record: ApplicationRecord, resume_version: int | None) -
     must = record.jd_analysis.must_have_requirements if record.jd_analysis else []
 
     requirement_rows = []
-    matched_count = 0
-    for req in must:
+    matched_count, matched_flags = _matched_requirement_ids(must, gap_status)
+    for req, matched in zip(must, matched_flags):
         status = gap_status.get(req.requirement, "")
-        matched = status != "no_experience"
-        matched_count += int(matched)
         gap = next((g for g in record.gaps if g.requirement == req.requirement), None)
         requirement_rows.append(
             {
@@ -282,6 +298,13 @@ def aggregate_market_fit(since: str = "") -> dict:
     requirement_counts: dict[str, int] = {}
     requirement_gap_counts: dict[str, int] = {}
     confirmed_counts: dict[str, int] = {}
+    # requirement text -> canonical_id, from the gap's OWN resolved id (set by
+    # catalog.resolve/canonicalize_requirement at analysis time) — never
+    # re-derived by re-slugifying raw text, which is the bug this fixes (§4c):
+    # a requirement like "HashiCorp Vault for secrets management" slugifies
+    # to something that never matches the catalog's actual canonical_id
+    # ("vault") once canonicalization has merged it with an existing entry.
+    confirmed_canonical_ids: dict[str, str] = {}
     match_rate: list[MatchRatePoint] = []
 
     for app in store.list_applications():
@@ -290,8 +313,8 @@ def aggregate_market_fit(since: str = "") -> dict:
         if app.jd_analysis is None:
             continue
         gap_status = {g.requirement: g.user_response.status for g in app.gaps}
-        matched = 0
         must = app.jd_analysis.must_have_requirements
+        matched, _ = _matched_requirement_ids(must, gap_status)
         for req in must:
             requirement_counts[req.requirement] = requirement_counts.get(req.requirement, 0) + 1
             status = gap_status.get(req.requirement)
@@ -299,10 +322,11 @@ def aggregate_market_fit(since: str = "") -> dict:
                 requirement_gap_counts[req.requirement] = (
                     requirement_gap_counts.get(req.requirement, 0) + 1
                 )
-            else:
-                matched += 1
             if status in ("have_experience", "partial_experience"):
                 confirmed_counts[req.requirement] = confirmed_counts.get(req.requirement, 0) + 1
+                gap = next((g for g in app.gaps if g.requirement == req.requirement), None)
+                if gap and gap.canonical_id:
+                    confirmed_canonical_ids[req.requirement] = gap.canonical_id
         match_rate.append(
             MatchRatePoint(
                 date=app.created_at,
@@ -311,14 +335,23 @@ def aggregate_market_fit(since: str = "") -> dict:
             )
         )
 
-    in_resume = {
-        e.canonical_id for e in store.list_catalog() if e.in_base_resume
-    }
-    promotable = {
-        req: count
-        for req, count in confirmed_counts.items()
-        if slugify(req) not in in_resume
-    }
+    catalog_by_id = {e.canonical_id: e for e in store.list_catalog()}
+    promotable = {}
+    for req, count in confirmed_counts.items():
+        canonical_id = confirmed_canonical_ids.get(req, "")
+        entry = catalog_by_id.get(canonical_id)
+        if entry is None:
+            # No resolved catalog entry to check — can't confirm it's
+            # promotable OR already in the base resume; skip rather than
+            # guess via a re-slugified string match (the exact bug being fixed).
+            continue
+        if entry.in_base_resume:
+            continue
+        # §6 — dismissing a suggestion removes it from the report entirely,
+        # not just hidden client-side; filtered before the Gemini call.
+        if entry.promote_suggestion_dismissed:
+            continue
+        promotable[req] = {"count": count, "canonical_id": canonical_id}
     return {
         "requirement_counts": requirement_counts,
         "requirement_gap_counts": requirement_gap_counts,

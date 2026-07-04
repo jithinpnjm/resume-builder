@@ -36,7 +36,11 @@ requirements, both explicit and implied. Return ONLY valid JSON matching this sc
   ],
   "nice_to_have_requirements": [ { "requirement": "", "category": "" } ],
   "ats_keywords": ["exact strings likely scanned by ATS - tool names, cert names, methodologies"],
-  "company_context": { "industry": "", "product_signal": "" }
+  "company_context": { "industry": "", "product_signal": "" },
+  "role_category": "senior_sre_devops_cloud|senior_mlops|senior_ai_platform|aiops_llmops|related_adjacent|unrelated",
+  "requires_deep_dev_skills": false,
+  "core_dev_languages_required": [],
+  "dev_skill_reasoning": ""
 }
 
 Rules:
@@ -51,8 +55,32 @@ Rules:
   might use instead: "shell scripting" -> ["Bash", "sh", "zsh", "Shell"],
   "Google Kubernetes Engine" -> ["GKE"], "infrastructure as code" -> ["IaC",
   "Terraform", "CloudFormation"].
+- Before finalizing keyword_variants, check every OTHER requirement you've
+  extracted from this same JD: if a more general requirement (e.g.
+  "containerization") is satisfied by a more specific one you've also listed
+  (e.g. "Kubernetes", "Docker"), the general requirement's keyword_variants
+  MUST include those specific technologies. Never leave an abstract skill
+  category without its concrete, commonly-used implementations as variants.
 - Generic delivery-model words (SaaS, agile, microservices) are company context,
   not requirements - categorize them "domain" only if truly load-bearing.
+
+Also classify:
+- role_category: one of "senior_sre_devops_cloud", "senior_mlops",
+  "senior_ai_platform", "aiops_llmops", "related_adjacent", "unrelated".
+  The candidate's target roles are Senior SRE/DevOps/Cloud Engineer, Senior
+  MLOps, Senior AI Platform Engineer, and AIOps/LLMOps. "related_adjacent"
+  is for roles clearly in the same infrastructure/platform/ML-ops universe
+  but not an exact fit (e.g. "Platform Reliability Lead", "ML Infrastructure
+  Engineer"). "unrelated" is for roles with no meaningful connection (sales,
+  frontend-only, pure data analyst, etc).
+- requires_deep_dev_skills: true if the role's PRIMARY function is software
+  development (writing application code as the main deliverable), not
+  infrastructure/platform/ops work that happens to involve scripting.
+- core_dev_languages_required: the actual programming languages this role
+  needs as CORE skills (not incidental scripting). Python, Go, Bash, and SQL
+  don't count as "deep dev skills" for this candidate even if required -
+  they're already covered. Only flag languages beyond those.
+- dev_skill_reasoning: one sentence justifying requires_deep_dev_skills.
 """
 
 
@@ -147,6 +175,37 @@ def canonicalize_requirements_batch(
         {"new_requirements": requirements, "existing_catalog": catalog_flat}
     )
     return generate_json(_CANONICALIZE_BATCH_SYSTEM_PROMPT, user_content)
+
+
+# ---------------------------------------------------------------------------
+# Relevance check (patch §4b) — a semantic double-check pass for candidate
+# gaps that failed deterministic keyword matching. This can only ever
+# SUPPRESS a wrongly-created gap (removing false noise); it never adds
+# content to the resume or lets the LLM claim experience on the candidate's
+# behalf. One batched call per JD, not per requirement.
+# ---------------------------------------------------------------------------
+
+_RELEVANCE_CHECK_PROMPT = """For each candidate gap below, check the candidate's
+actual resume content (not just a keyword list) and decide whether it is
+ALREADY substantively covered under a different name, tool, or phrasing.
+Be conservative: only mark "already_covered" when the resume content clearly
+demonstrates the underlying skill, not when it's merely plausible or adjacent.
+
+Return ONLY JSON matching: [{ "requirement": "", "already_covered": false,
+  "covering_evidence": "the specific resume text that covers it, or empty" }]
+Every requirement in the input list must appear as an entry in the output.
+"""
+
+
+def check_gap_relevance(
+    candidate_gaps: list[str], resume_text: str
+) -> list[dict]:
+    if not candidate_gaps:
+        return []
+    user_content = json.dumps(
+        {"candidate_gaps": candidate_gaps, "resume_text": resume_text}
+    )
+    return generate_json(_RELEVANCE_CHECK_PROMPT, user_content)
 
 
 # ---------------------------------------------------------------------------

@@ -132,6 +132,18 @@ export default function TrendScanPage({ onGuidesChanged }: { onGuidesChanged: ()
             </p>
           )}
 
+          {active.skipped_postings.length > 0 && (
+            <section>
+              <h3>Skipped — outside target skillset</h3>
+              {active.skipped_postings.map((s, i) => (
+                <div key={i} className="card gap-card gap-no_experience">
+                  <strong>{s.role_title}</strong>
+                  <p className="muted">{s.reason}</p>
+                </div>
+              ))}
+            </section>
+          )}
+
           {active.review_items.map((item, i) => {
             const reviewed = item.user_response.status !== "not_reviewed";
             return (

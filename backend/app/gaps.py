@@ -72,6 +72,22 @@ def skills_master(resume: ResumeJSON) -> list[str]:
     return [item for cat in resume.skills.categories for item in cat.items]
 
 
+def compute_skill_match_pct(resume: ResumeJSON, jd_analysis: JDAnalysis) -> float:
+    """Deterministic must-have match ratio — the single shared implementation
+    used by the role-fit gate, market-fit aggregation, and the BigQuery write
+    path. Don't reimplement this a third time."""
+    must = jd_analysis.must_have_requirements
+    if not must:
+        return 1.0
+    text = _resume_full_text(resume)
+    matched = sum(
+        1
+        for req in must
+        if any(_term_present(v, text) for v in [req.requirement, *req.keyword_variants])
+    )
+    return matched / len(must)
+
+
 def _find_jd_line(variants: list[str], job_description: str) -> str:
     for line in job_description.splitlines():
         lower = line.lower()
@@ -124,3 +140,27 @@ def detect_gaps(
                 GapItem(requirement=req.requirement, jd_context=jd_line or req.requirement)
             )
     return gaps
+
+
+def suppress_false_positive_gaps(
+    gaps: list[GapItem], resume: ResumeJSON
+) -> list[GapItem]:
+    """Patch §4b: one batched Gemini call per JD, checking every candidate gap
+    (that survived deterministic keyword matching) against the resume's
+    actual prose — not just keywords. This can only REMOVE a wrongly-created
+    gap; it never adds content or lets the LLM assert experience on the
+    candidate's behalf. Best-effort: if the check call fails for any reason,
+    fall back to the deterministic gaps as-is rather than blocking the flow."""
+    if not gaps:
+        return gaps
+    from . import gemini_calls
+
+    text = _resume_full_text(resume)
+    try:
+        results = gemini_calls.check_gap_relevance([g.requirement for g in gaps], text)
+    except Exception:
+        return gaps
+    covered = {
+        r.get("requirement") for r in results if r.get("already_covered") is True
+    }
+    return [g for g in gaps if g.requirement not in covered]

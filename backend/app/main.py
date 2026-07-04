@@ -13,8 +13,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from pydantic import BaseModel
 
-from . import archive, catalog, gemini_calls, sources, store, studyguide
-from .gaps import detect_gaps, skills_master
+from . import archive, catalog, gemini_calls, role_fit, sources, store, studyguide
+from .gaps import compute_skill_match_pct, detect_gaps, skills_master, suppress_false_positive_gaps
 from .parser import SUPPORTED_EXTENSIONS, extract_text, parse_resume_to_json
 from .renderer import render_docx, render_pdf
 from .schemas import (
@@ -166,9 +166,21 @@ def create_application(req: CreateApplicationRequest) -> ApplicationRecord:
 
     resume = store.get_base_resume()
     jd_analysis = gemini_calls.analyze_jd(req.job_description)
+
+    # Role-fit gate (patch §1): runs immediately after JD analysis, before
+    # any tailoring or gap detection. "skip" refuses outright; "warn" is
+    # carried on the record for the UI to surface but does not block.
+    skill_match_pct = compute_skill_match_pct(resume, jd_analysis)
+    fit = role_fit.assess(jd_analysis, skill_match_pct)
+    if fit.decision == "skip":
+        raise HTTPException(422, f"Skipped: {fit.decision_reason}")
+
     tailoring_plan = gemini_calls.build_tailoring_plan(resume, jd_analysis)
 
     gaps = detect_gaps(resume, jd_analysis, req.job_description)
+    # Patch §4b: semantic double-check — can only remove false-positive gaps
+    # already substantively covered under a different name/tool in the resume.
+    gaps = suppress_false_positive_gaps(gaps, resume)
     master = skills_master(resume)
     role = jd_analysis.role_title
     # ONE canonicalization call for every gap in this JD, not one per gap —
@@ -209,6 +221,7 @@ def create_application(req: CreateApplicationRequest) -> ApplicationRecord:
         jd_analysis=jd_analysis,
         tailoring_plan=tailoring_plan,
         gaps=gaps,
+        role_fit=fit,
     )
     # Persist immediately (v3 §5) — a crash or closed tab after this point
     # must not lose the analysis.
