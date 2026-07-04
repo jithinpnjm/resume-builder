@@ -95,7 +95,14 @@ function App() {
         />
       )}
       {view.name === "application" && view.appId && (
-        <ApplicationView appId={view.appId} onChanged={refreshData} />
+        <ApplicationView
+          appId={view.appId}
+          onChanged={refreshData}
+          onDiscarded={() => {
+            refreshData();
+            navigate({ name: "home" });
+          }}
+        />
       )}
       {view.name === "onboarding" && (
         <OnboardingPage

@@ -347,6 +347,20 @@ def edit_proposed_bullet(
     return gap
 
 
+@app.post("/applications/{application_id}/discard", response_model=ApplicationRecord)
+def discard_application(application_id: str) -> ApplicationRecord:
+    """Walk away from an application before finalize (patch §5). No GCS/BQ
+    writes, no catalog rollback — the JD's requirements stay counted in
+    requirements_catalog demand (that signal is still real), but nothing
+    else happens. Callable from analyzing, pending_review, or approved."""
+    record = _get_record_or_404(application_id)
+    if record.status in ("finalized", "archived"):
+        raise HTTPException(409, f"Application is {record.status} — nothing to discard")
+    record.status = "discarded"
+    store.save_application(record)
+    return record
+
+
 @app.post("/applications/{application_id}/study-plan", response_model=list[StudyPlan])
 def generate_study_plans(application_id: str) -> list[StudyPlan]:
     """Study plans for every gap marked no_experience (Gemini Call 5)."""

@@ -137,6 +137,11 @@ class JDAnalysis(BaseModel):
         return v or ""
     ats_keywords: list[str] = Field(default_factory=list)
     company_context: CompanyContext = Field(default_factory=CompanyContext)
+    # --- role-fit gate (patch §1) ---
+    role_category: str = "unrelated"  # one of TARGET_ROLE_CATEGORIES | "related_adjacent" | "unrelated"
+    requires_deep_dev_skills: bool = False
+    core_dev_languages_required: list[str] = Field(default_factory=list)
+    dev_skill_reasoning: str = ""
 
 
 # ---------------------------------------------------------------------------
@@ -293,6 +298,10 @@ class CatalogEntry(BaseModel):
     in_base_resume: bool = False
     priority_score: float = 0.0
     last_seen: str = ""
+    # patch §6 — dismissing a promote-suggestion removes it from the report
+    # entirely (filtered before the Gemini synthesis call), not just hidden
+    # client-side.
+    promote_suggestion_dismissed: bool = False
 
 
 # ---------------------------------------------------------------------------
@@ -300,10 +309,10 @@ class CatalogEntry(BaseModel):
 # ---------------------------------------------------------------------------
 
 class StudyGuideResource(BaseModel):
-    type: str = ""  # docs|blog|course|video
+    type: str = ""  # docs|blog|course|video|book|portal|repo
     title: str = ""
     url: str = ""
-    source: str = ""  # official|medium|linkedin|tldr|udemy|...
+    source: str = ""  # official|medium|linkedin|tldr|udemy|oreilly|acloudguru|kodekloud|...
     url_valid: bool = True
 
 
@@ -337,6 +346,8 @@ class RecommendedBook(BaseModel):
     title: str = ""
     authors: str = ""
     why: str = ""
+    oreilly_url: str = ""     # O'Reilly/Safari catalog page if it exists
+    publisher_url: str = ""   # fallback if not on O'Reilly (publisher/Amazon)
 
 
 class StudyGuideEntry(BaseModel):
@@ -372,6 +383,9 @@ class TrendScanBatch(BaseModel):
     review_items: list[TrendGapItem] = Field(default_factory=list)
     # requirements auto-counted without user interaction (already confirmed)
     auto_counted: list[str] = Field(default_factory=list)
+    # patch §1 — postings excluded entirely by the role-fit gate: no gap
+    # detection, no catalog writes for that posting.
+    skipped_postings: list[dict] = Field(default_factory=list)
     status: Literal["pending_review", "completed"] = "pending_review"
     completed_at: str = ""
 
@@ -385,6 +399,8 @@ class UserSettings(BaseModel):
     linkedin_url: str = ""
     medium_url: str = ""
     newsletters: list[str] = Field(default_factory=list)
+    oreilly_access: bool = False
+    preferred_portals: list[str] = Field(default_factory=list)  # e.g. ["A Cloud Guru", "KodeKloud"]
 
 
 # ---------------------------------------------------------------------------
@@ -400,6 +416,7 @@ class MatchRatePoint(BaseModel):
 
 class RecurringGap(BaseModel):
     requirement: str = ""
+    theme: str = ""  # e.g. "MLOps tooling", "Observability"
     times_required: int = 0
     times_gapped: int = 0
     priority: str = ""
@@ -408,8 +425,11 @@ class RecurringGap(BaseModel):
 
 class PromotableExperience(BaseModel):
     requirement: str = ""
+    canonical_id: str = ""  # needed so dismiss can target the right catalog entry
+    theme: str = ""
     confirmed_in_applications: int = 0
     suggested_action: str = ""
+    dismissed: bool = False
 
 
 class StructuralSuggestion(BaseModel):
@@ -433,8 +453,17 @@ class MarketFitReport(BaseModel):
 # ---------------------------------------------------------------------------
 
 ApplicationStatus = Literal[
-    "analyzing", "pending_review", "approved", "finalized", "archived"
+    "analyzing", "pending_review", "approved", "finalized", "archived", "discarded"
 ]
+
+
+class RoleFitAssessment(BaseModel):
+    role_category: str = "unrelated"
+    requires_deep_dev_skills: bool = False
+    core_dev_languages_required: list[str] = Field(default_factory=list)
+    skill_match_pct: float = 0.0
+    decision: str = "process"  # process | warn | skip
+    decision_reason: str = ""
 
 
 class DiffSummary(BaseModel):
@@ -458,6 +487,7 @@ class ApplicationRecord(BaseModel):
     cover_letter: str = ""
     approved_at: str | None = None
     gcs_path: str = ""
+    role_fit: RoleFitAssessment | None = None
 
 
 # ---------------------------------------------------------------------------

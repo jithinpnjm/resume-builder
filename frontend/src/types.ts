@@ -168,13 +168,23 @@ export type ApplicationStatus =
   | "pending_review"
   | "approved"
   | "finalized"
-  | "archived";
+  | "archived"
+  | "discarded";
 
 export interface DiffSummary {
   added: string[];
   removed: string[];
   reordered: string[];
   reworded: string[];
+}
+
+export interface RoleFitAssessment {
+  role_category: string;
+  requires_deep_dev_skills: boolean;
+  core_dev_languages_required: string[];
+  skill_match_pct: number;
+  decision: "process" | "warn" | "skip";
+  decision_reason: string;
 }
 
 export interface ApplicationRecord {
@@ -191,6 +201,7 @@ export interface ApplicationRecord {
   cover_letter: string;
   approved_at: string | null;
   gcs_path: string;
+  role_fit: RoleFitAssessment | null;
 }
 
 export interface AtsReport {
@@ -211,6 +222,7 @@ export interface CatalogEntry {
   in_base_resume: boolean;
   priority_score: number;
   last_seen: string;
+  promote_suggestion_dismissed: boolean;
 }
 
 export interface StudyGuideResource {
@@ -245,6 +257,8 @@ export interface RecommendedBook {
   title: string;
   authors: string;
   why: string;
+  oreilly_url: string;
+  publisher_url: string;
 }
 
 export interface StudyGuideEntry {
@@ -273,6 +287,7 @@ export interface TrendScanBatch {
   role_titles: string[];
   review_items: TrendGapItem[];
   auto_counted: string[];
+  skipped_postings: { role_title: string; reason: string }[];
   status: "pending_review" | "completed";
   completed_at: string;
 }
@@ -281,23 +296,33 @@ export interface UserSettings {
   linkedin_url: string;
   medium_url: string;
   newsletters: string[];
+  oreilly_access: boolean;
+  preferred_portals: string[];
+}
+
+export interface RecurringGap {
+  requirement: string;
+  theme: string;
+  times_required: number;
+  times_gapped: number;
+  priority: string;
+  reasoning: string;
+}
+
+export interface PromotableExperience {
+  requirement: string;
+  canonical_id: string;
+  theme: string;
+  confirmed_in_applications: number;
+  suggested_action: string;
+  dismissed: boolean;
 }
 
 export interface MarketFitReport {
   period: { start?: string; end?: string; applications_analyzed?: number };
   match_rate_trend: { date: string; company: string; match_pct: number | null }[];
-  top_recurring_gaps: {
-    requirement: string;
-    times_required: number;
-    times_gapped: number;
-    priority: string;
-    reasoning: string;
-  }[];
-  promotable_experience_not_yet_in_base_resume: {
-    requirement: string;
-    confirmed_in_applications: number;
-    suggested_action: string;
-  }[];
+  top_recurring_gaps: RecurringGap[];
+  promotable_experience_not_yet_in_base_resume: PromotableExperience[];
   resume_structural_suggestions: { detail: string }[];
   study_plan_priority_ranked: string[];
   generated_at: string;

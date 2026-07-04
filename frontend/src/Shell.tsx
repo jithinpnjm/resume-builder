@@ -16,10 +16,13 @@ export interface View {
   appId?: string;
 }
 
-const STATUS_GROUPS: { label: string; statuses: string[] }[] = [
+const STATUS_GROUPS: { label: string; statuses: string[]; collapsedByDefault?: boolean }[] = [
   { label: "In review", statuses: ["analyzing", "pending_review", "approved"] },
   { label: "Finalized", statuses: ["finalized"] },
   { label: "Archived", statuses: ["archived"] },
+  // Collapsed by default so discarded applications don't clutter the main
+  // list but aren't silently deleted either (patch §5).
+  { label: "Discarded", statuses: ["discarded"], collapsedByDefault: true },
 ];
 
 export default function Shell({
@@ -85,22 +88,37 @@ export default function Shell({
 
         {STATUS_GROUPS.map((group) => {
           const apps = applications.filter((a) => group.statuses.includes(a.status));
+          const items = apps.map((app) => (
+            <button
+              key={app.id}
+              className={`nav-item ${
+                view.name === "application" && view.appId === app.id ? "active" : ""
+              }`}
+              onClick={() => onNavigate({ name: "application", appId: app.id })}
+              title={`${app.company} — ${app.role_title} (${app.status})`}
+            >
+              {app.company || "?"} · {app.role_title || "?"}
+            </button>
+          ));
+
+          if (group.collapsedByDefault) {
+            // Discarded applications stay out of the way but aren't hidden
+            // entirely — collapsed <details> keeps them one click away.
+            return (
+              <details key={group.label}>
+                <summary className="nav-group" style={{ cursor: "pointer" }}>
+                  {group.label} ({apps.length})
+                </summary>
+                {apps.length === 0 ? <div className="nav-empty">none</div> : items}
+              </details>
+            );
+          }
+
           return (
             <div key={group.label}>
               <div className="nav-group">{group.label}</div>
               {apps.length === 0 && <div className="nav-empty">none</div>}
-              {apps.map((app) => (
-                <button
-                  key={app.id}
-                  className={`nav-item ${
-                    view.name === "application" && view.appId === app.id ? "active" : ""
-                  }`}
-                  onClick={() => onNavigate({ name: "application", appId: app.id })}
-                  title={`${app.company} — ${app.role_title} (${app.status})`}
-                >
-                  {app.company || "?"} · {app.role_title || "?"}
-                </button>
-              ))}
+              {items}
             </div>
           );
         })}

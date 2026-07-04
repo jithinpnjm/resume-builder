@@ -136,6 +136,18 @@ export function archivedFileUrl(applicationId: string, filename: string) {
   return `${API_BASE}/applications/${applicationId}/archived/${filename}`;
 }
 
+export function discardApplication(applicationId: string) {
+  return request<ApplicationRecord>(`/applications/${applicationId}/discard`, {
+    method: "POST",
+  });
+}
+
+export function dismissPromoteSuggestion(canonicalId: string) {
+  return request<{ dismissed: string }>(`/catalog/${canonicalId}/dismiss-suggestion`, {
+    method: "POST",
+  });
+}
+
 export function getCatalog() {
   return request<CatalogEntry[]>("/catalog");
 }

@@ -6,15 +6,18 @@ import type { ApplicationRecord, GapItem } from "./types";
 export default function ApplicationView({
   appId,
   onChanged,
+  onDiscarded,
 }: {
   appId: string;
   onChanged: () => void;
+  onDiscarded: () => void;
 }) {
   const [record, setRecord] = useState<ApplicationRecord | null>(null);
   const [coverLetter, setCoverLetter] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [promoted, setPromoted] = useState<Record<number, string>>({});
+  const [fitDismissed, setFitDismissed] = useState(false);
 
   useEffect(() => {
     api.getApplication(appId).then((r) => {
@@ -72,6 +75,33 @@ export default function ApplicationView({
         {record.company || "Application"} — {record.role_title}{" "}
         <span className={`pill ${record.status}`}>{record.status.replace("_", " ")}</span>
       </h1>
+
+      {record.role_fit && record.role_fit.decision === "warn" && !fitDismissed && (
+        <div className="reuse-banner" style={{ borderColor: "var(--status-partial)" }}>
+          Outside your target roles and {Math.round(record.role_fit.skill_match_pct * 100)}%
+          skill match — {record.role_fit.decision_reason} Proceeding anyway.
+          <div className="gap-actions">
+            <button onClick={() => setFitDismissed(true)}>Dismiss</button>
+          </div>
+        </div>
+      )}
+
+      {["analyzing", "pending_review", "approved"].includes(record.status) && (
+        <p>
+          <button
+            className="danger-ghost"
+            onClick={() =>
+              run("discard", async () => {
+                await api.discardApplication(record.id);
+                onDiscarded();
+              })
+            }
+            disabled={busy === "discard"}
+          >
+            {busy === "discard" ? "Discarding…" : "Discard — not a fit"}
+          </button>
+        </p>
+      )}
 
       {record.status === "pending_review" && (
         <>
