@@ -1,0 +1,7 @@
+project_id   = "my-personal-data-430607"
+region       = "asia-south1"
+service_name = "resume-agent"
+repo_name    = "resume-agent"
+bucket_name  = "resume-agent-templates"
+gemini_model = "gemini-2.5-flash"
+image        = "asia-south1-docker.pkg.dev/my-personal-data-430607/resume-agent/resume-agent:latest"

@@ -1,0 +1,6 @@
+/* Reset only — all real styling lives in App.css (v3 §8 design system). */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}

@@ -1,0 +1,28 @@
+# secrets
+.env
+.env.local
+.env.production.local
+backend/.env
+
+# python
+__pycache__/
+*.pyc
+.venv/
+backend/local_state/
+
+# node / frontend build
+node_modules/
+frontend/dist/
+backend/static/
+
+# terraform
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+
+# os
+.DS_Store
+
+# claude project metadata (local session artifacts, not source)
+.claude/

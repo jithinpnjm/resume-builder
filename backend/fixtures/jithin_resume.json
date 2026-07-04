@@ -1,0 +1,1086 @@
+{
+  "contact": {
+    "name": "Jithin Pattasseril Joseph",
+    "location": "Berlin, 13587 BE",
+    "email": "jithinpnjm23@gmail.com",
+    "phone": "017677513618",
+    "linkedin": "www.linkedin.com/in/jithinpjoseph",
+    "github": ""
+  },
+  "summary": "Senior Cloud, Platform, DevOps, and SRE Engineer with 12.5+ years of experience building scalable, secure, and highly available infrastructure across AWS and GCP. Expertise in Kubernetes, GKE, Terraform, CI/CD, GitOps, observability, cloud security, and reliability engineering, with a strong track record of improving platform resilience, deployment speed, and operational efficiency. Experienced in building developer platforms and AI/ML infrastructure, including GPU-enabled Kubernetes environments, enterprise AI services, and production-grade model deployment workflows. Proven strengths in automation, incident response, root cause analysis, compliance, cost optimization, and cross-functional collaboration.",
+  "accomplishments": [
+    {
+      "id": "acc1",
+      "text": "Architected and optimized AWS and GCP infrastructure for 100+ applications, ensuring 99.99% uptime and resilient cloud operations.",
+      "tags": [],
+      "segments": [
+        {
+          "text": "Architected and optimized ",
+          "bold": false
+        },
+        {
+          "text": "AWS and GCP infrastructure",
+          "bold": true
+        },
+        {
+          "text": " for ",
+          "bold": false
+        },
+        {
+          "text": "100+ applications",
+          "bold": true
+        },
+        {
+          "text": ", ensuring ",
+          "bold": false
+        },
+        {
+          "text": "99.99% uptime",
+          "bold": true
+        },
+        {
+          "text": " and resilient cloud operations.",
+          "bold": false
+        }
+      ]
+    },
+    {
+      "id": "acc2",
+      "text": "Automated infrastructure provisioning and cloud operations using Terraform, Python, and Go, improving deployment consistency and operational efficiency.",
+      "tags": [],
+      "segments": [
+        {
+          "text": "Automated infrastructure provisioning and cloud operations using ",
+          "bold": false
+        },
+        {
+          "text": "Terraform, Python, and Go",
+          "bold": true
+        },
+        {
+          "text": ", improving deployment consistency and operational efficiency.",
+          "bold": false
+        }
+      ]
+    },
+    {
+      "id": "acc3",
+      "text": "Led platform engineering across Kubernetes/GKE environments, managing 20+ clusters(2000+ Nodes) and improving scalability, reliability, and infrastructure efficiency.",
+      "tags": [],
+      "segments": [
+        {
+          "text": "Led platform engineering across ",
+          "bold": false
+        },
+        {
+          "text": "Kubernetes/GKE environments",
+          "bold": true
+        },
+        {
+          "text": ", managing ",
+          "bold": false
+        },
+        {
+          "text": "20+ clusters(2000+ Nodes)",
+          "bold": true
+        },
+        {
+          "text": " and improving scalability, reliability, and infrastructure efficiency.",
+          "bold": false
+        }
+      ]
+    },
+    {
+      "id": "acc4",
+      "text": "Built and scaled GPU-enabled AI/ML platforms with A100/T4, CUDA, MIG, and time sharing for enterprise training and inference workloads.",
+      "tags": [],
+      "segments": [
+        {
+          "text": "Built and scaled ",
+          "bold": false
+        },
+        {
+          "text": "GPU-enabled AI/ML platforms",
+          "bold": true
+        },
+        {
+          "text": " with ",
+          "bold": false
+        },
+        {
+          "text": "A100/T4, CUDA, MIG, and time sharing",
+          "bold": true
+        },
+        {
+          "text": " for enterprise training and inference workloads.",
+          "bold": false
+        }
+      ]
+    },
+    {
+      "id": "acc5",
+      "text": "Implemented GitOps and CI/CD with ArgoCD, FluxCD, GitHub Actions, Jenkins, and Terraform, improving release velocity and deployment reliability.",
+      "tags": [],
+      "segments": [
+        {
+          "text": "Implemented ",
+          "bold": false
+        },
+        {
+          "text": "GitOps and CI/CD",
+          "bold": true
+        },
+        {
+          "text": " with ",
+          "bold": false
+        },
+        {
+          "text": "ArgoCD, FluxCD, GitHub Actions, Jenkins, and Terraform",
+          "bold": true
+        },
+        {
+          "text": ", improving release velocity and deployment reliability.",
+          "bold": false
+        }
+      ]
+    },
+    {
+      "id": "acc6",
+      "text": "Contributed to $1M+ annual cloud cost savings while strengthening DevSecOps, IAM, compliance, and AI platform governance across multi-cloud environments.",
+      "tags": [],
+      "segments": [
+        {
+          "text": "Contributed to ",
+          "bold": false
+        },
+        {
+          "text": "$1M+ annual cloud cost savings",
+          "bold": true
+        },
+        {
+          "text": " while strengthening ",
+          "bold": false
+        },
+        {
+          "text": "DevSecOps, IAM, compliance, and AI platform governance",
+          "bold": true
+        },
+        {
+          "text": " across multi-cloud environments.",
+          "bold": false
+        }
+      ]
+    }
+  ],
+  "skills": {
+    "categories": [
+      {
+        "name": "Cloud",
+        "items": [
+          "GCP",
+          "AWS",
+          "Azure"
+        ]
+      },
+      {
+        "name": "Infrastructure",
+        "items": [
+          "Terraform",
+          "Pulumi",
+          "Kubernetes",
+          "Docker"
+        ]
+      },
+      {
+        "name": "CI/CD & GitOps",
+        "items": [
+          "Jenkins",
+          "GitHub Actions",
+          "ArgoCD",
+          "FluxCD"
+        ]
+      },
+      {
+        "name": "AI/ML Platforms",
+        "items": [
+          "Vertex AI",
+          "Azure OpenAI",
+          "Seldon",
+          "Jupyter"
+        ]
+      },
+      {
+        "name": "GPU Infrastructure",
+        "items": [
+          "NVIDIA A100/T4",
+          "CUDA",
+          "MIG",
+          "Time Sharing"
+        ]
+      },
+      {
+        "name": "Security & Compliance",
+        "items": [
+          "IAM",
+          "RBAC",
+          "OAuth",
+          "OIDC"
+        ]
+      },
+      {
+        "name": "Observability",
+        "items": [
+          "Prometheus",
+          "Grafana",
+          "OpenTelemetry",
+          "ELK"
+        ]
+      },
+      {
+        "name": "Programming",
+        "items": [
+          "Go",
+          "Python",
+          "Bash"
+        ]
+      },
+      {
+        "name": "Networking",
+        "items": [
+          "Istio",
+          "NGINX",
+          "Kong",
+          "Ambassador"
+        ]
+      },
+      {
+        "name": "Data Platforms",
+        "items": [
+          "PostgreSQL",
+          "BigQuery",
+          "Dataflow",
+          "Airflow"
+        ]
+      }
+    ]
+  },
+  "experience": [
+    {
+      "id": "exp_1",
+      "company": "Allex.ai",
+      "title": "Cloud DevOps & SRE Engineer",
+      "location": "Berlin, Germany",
+      "start": "September 2024",
+      "end": "Current",
+      "bullets": [
+        {
+          "id": "exp_1_b1",
+          "text": "Architected and managed GKE-based Kubernetes infrastructure on Google Cloud, ensuring high availability for mission-critical applications.",
+          "tags": [],
+          "segments": [
+            {
+              "text": "Architected and managed ",
+              "bold": false
+            },
+            {
+              "text": "GKE-based Kubernetes infrastructure",
+              "bold": true
+            },
+            {
+              "text": " on Google Cloud, ensuring high availability for mission-critical applications.",
+              "bold": false
+            }
+          ]
+        },
+        {
+          "id": "exp_1_b2",
+          "text": "Built and maintained GitOps-driven CI/CD pipelines using FluxCD, GitHub Actions, and Terraform, improving deployment speed by around 25–35% and reducing release risk.",
+          "tags": [],
+          "segments": [
+            {
+              "text": "Built and maintained ",
+              "bold": false
+            },
+            {
+              "text": "GitOps-driven CI/CD pipelines",
+              "bold": true
+            },
+            {
+              "text": " using ",
+              "bold": false
+            },
+            {
+              "text": "FluxCD, GitHub Actions, and Terraform",
+              "bold": true
+            },
+            {
+              "text": ", improving deployment speed by ",
+              "bold": false
+            },
+            {
+              "text": "around 25–35%",
+              "bold": true
+            },
+            {
+              "text": " and reducing release risk.",
+              "bold": false
+            }
+          ]
+        },
+        {
+          "id": "exp_1_b3",
+          "text": "Led infrastructure architecture improvements for scalability, resilience, and security, reducing deployment failures by around 15–20%.",
+          "tags": [],
+          "segments": [
+            {
+              "text": "Led infrastructure architecture improvements for ",
+              "bold": false
+            },
+            {
+              "text": "scalability, resilience, and security",
+              "bold": true
+            },
+            {
+              "text": ", reducing deployment failures by ",
+              "bold": false
+            },
+            {
+              "text": "around 15–20%",
+              "bold": true
+            },
+            {
+              "text": ".",
+              "bold": false
+            }
+          ]
+        },
+        {
+          "id": "exp_1_b4",
+          "text": "Implemented observability using Prometheus, Grafana, and ELK, improving monitoring, troubleshooting, and platform reliability.",
+          "tags": [],
+          "segments": [
+            {
+              "text": "Implemented observability using ",
+              "bold": false
+            },
+            {
+              "text": "Prometheus, Grafana, and ELK",
+              "bold": true
+            },
+            {
+              "text": ", improving monitoring, troubleshooting, and platform reliability.",
+              "bold": false
+            }
+          ]
+        },
+        {
+          "id": "exp_1_b5",
+          "text": "Strengthened security using RBAC, IAM, and OAuth, supporting GDPR and SOC 2 compliance objectives.",
+          "tags": [],
+          "segments": [
+            {
+              "text": "Strengthened security using ",
+              "bold": false
+            },
+            {
+              "text": "RBAC, IAM, and OAuth",
+              "bold": true
+            },
+            {
+              "text": ", supporting ",
+              "bold": false
+            },
+            {
+              "text": "GDPR",
+              "bold": true
+            },
+            {
+              "text": " and ",
+              "bold": false
+            },
+            {
+              "text": "SOC 2",
+              "bold": true
+            },
+            {
+              "text": " compliance objectives.",
+              "bold": false
+            }
+          ]
+        },
+        {
+          "id": "exp_1_b6",
+          "text": "Optimized cloud costs by around 15–20% while maintaining high availability and performance.",
+          "tags": [],
+          "segments": [
+            {
+              "text": "Optimized cloud costs by ",
+              "bold": false
+            },
+            {
+              "text": "around 15–20%",
+              "bold": true
+            },
+            {
+              "text": " while maintaining high availability and performance.",
+              "bold": false
+            }
+          ]
+        },
+        {
+          "id": "exp_1_b7",
+          "text": "Deployed and managed enterprise LLM workloads on Azure OpenAI and Vertex AI, including quotas, model upgrades, monitoring, and safety controls.",
+          "tags": [],
+          "segments": [
+            {
+              "text": "Deployed and managed enterprise ",
+              "bold": false
+            },
+            {
+              "text": "LLM workloads",
+              "bold": true
+            },
+            {
+              "text": " on ",
+              "bold": false
+            },
+            {
+              "text": "Azure OpenAI",
+              "bold": true
+            },
+            {
+              "text": " and ",
+              "bold": false
+            },
+            {
+              "text": "Vertex AI",
+              "bold": true
+            },
+            {
+              "text": ", including quotas, model upgrades, monitoring, and safety controls.",
+              "bold": false
+            }
+          ]
+        },
+        {
+          "id": "exp_1_b8",
+          "text": "Built an internal LLM chat platform on Kubernetes with LibreChat, MCP servers, SSO integration, and CI/CD automation for secure internal AI adoption.",
+          "tags": [],
+          "segments": [
+            {
+              "text": "Built an internal ",
+              "bold": false
+            },
+            {
+              "text": "LLM chat platform",
+              "bold": true
+            },
+            {
+              "text": " on Kubernetes with ",
+              "bold": false
+            },
+            {
+              "text": "LibreChat, MCP servers, SSO integration, and CI/CD automation",
+              "bold": true
+            },
+            {
+              "text": " for secure internal AI adoption.",
+              "bold": false
+            }
+          ]
+        },
+        {
+          "id": "exp_1_b9",
+          "text": "Configured content safety guardrails, observability, and access controls for production LLM deployments across multi-cloud environments.",
+          "tags": [],
+          "segments": [
+            {
+              "text": "Configured ",
+              "bold": false
+            },
+            {
+              "text": "content safety guardrails, observability, and access controls",
+              "bold": true
+            },
+            {
+              "text": " for production LLM deployments across multi-cloud environments.",
+              "bold": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "exp_2",
+      "company": "PayPal",
+      "title": "Cloud DevOps Engineer",
+      "location": "India",
+      "start": "December 2021",
+      "end": "August 2024",
+      "bullets": [
+        {
+          "id": "exp_2_b1",
+          "text": "Designed and managed multi-cloud infrastructure across AWS and GCP, delivering high availability for critical platforms and contributing to $1M+ in annual cost savings through optimization and capacity planning.",
+          "tags": [],
+          "segments": [
+            {
+              "text": "Designed and managed ",
+              "bold": false
+            },
+            {
+              "text": "multi-cloud infrastructure across AWS and GCP",
+              "bold": true
+            },
+            {
+              "text": ", delivering high availability for critical platforms and contributing to ",
+              "bold": false
+            },
+            {
+              "text": "$1M+ in annual cost savings",
+              "bold": true
+            },
+            {
+              "text": " through optimization and capacity planning.",
+              "bold": false
+            }
+          ]
+        },
+        {
+          "id": "exp_2_b2",
+          "text": "Automated cloud provisioning and infrastructure management using Terraform, Python, and Go, reducing manual effort by around 30–40% and improving deployment consistency.",
+          "tags": [],
+          "segments": [
+            {
+              "text": "Automated cloud provisioning and infrastructure management using ",
+              "bold": false
+            },
+            {
+              "text": "Terraform, Python, and Go",
+              "bold": true
+            },
+            {
+              "text": ", reducing manual effort by ",
+              "bold": false
+            },
+            {
+              "text": "around 30–40%",
+              "bold": true
+            },
+            {
+              "text": " and improving deployment consistency.",
+              "bold": false
+            }
+          ]
+        },
+        {
+          "id": "exp_2_b3",
+          "text": "Owned and operated GKE clusters for AI/ML platforms, supporting 100+ GPU-enabled nodes for large-scale model training, inference, and internal developer workloads.",
+          "tags": [],
+          "segments": [
+            {
+              "text": "Owned and operated ",
+              "bold": false
+            },
+            {
+              "text": "GKE clusters",
+              "bold": true
+            },
+            {
+              "text": " for AI/ML platforms, supporting ",
+              "bold": false
+            },
+            {
+              "text": "100+ GPU-enabled nodes",
+              "bold": true
+            },
+            {
+              "text": " for large-scale model training, inference, and internal developer workloads.",
+              "bold": false
+            }
+          ]
+        },
+        {
+          "id": "exp_2_b4",
+          "text": "Managed NVIDIA A100 and T4 GPU environments, including driver/CUDA administration, node pool operations, MIG, and time sharing, improving GPU utilization and operational efficiency.",
+          "tags": [],
+          "segments": [
+            {
+              "text": "Managed ",
+              "bold": false
+            },
+            {
+              "text": "NVIDIA A100 and T4 GPU environments",
+              "bold": true
+            },
+            {
+              "text": ", including ",
+              "bold": false
+            },
+            {
+              "text": "driver/CUDA administration, node pool operations, MIG, and time sharing",
+              "bold": true
+            },
+            {
+              "text": ", improving GPU utilization and operational efficiency.",
+              "bold": false
+            }
+          ]
+        },
+        {
+          "id": "exp_2_b5",
+          "text": "Developed Kubernetes controllers and Helm charts, reducing deployment time by roughly 30–40% and improving reliability of containerized workloads.",
+          "tags": [],
+          "segments": [
+            {
+              "text": "Developed ",
+              "bold": false
+            },
+            {
+              "text": "Kubernetes controllers and Helm charts",
+              "bold": true
+            },
+            {
+              "text": ", reducing deployment time by ",
+              "bold": false
+            },
+            {
+              "text": "roughly 30–40%",
+              "bold": true
+            },
+            {
+              "text": " and improving reliability of containerized workloads.",
+              "bold": false
+            }
+          ]
+        },
+        {
+          "id": "exp_2_b6",
+          "text": "Built and maintained CI/CD pipelines using Jenkins, ArgoCD, and Terraform, improving deployment speed by about 25–35% and reducing release errors.",
+          "tags": [],
+          "segments": [
+            {
+              "text": "Built and maintained ",
+              "bold": false
+            },
+            {
+              "text": "CI/CD pipelines",
+              "bold": true
+            },
+            {
+              "text": " using ",
+              "bold": false
+            },
+            {
+              "text": "Jenkins, ArgoCD, and Terraform",
+              "bold": true
+            },
+            {
+              "text": ", improving deployment speed by ",
+              "bold": false
+            },
+            {
+              "text": "about 25–35%",
+              "bold": true
+            },
+            {
+              "text": " and reducing release errors.",
+              "bold": false
+            }
+          ]
+        },
+        {
+          "id": "exp_2_b7",
+          "text": "Enabled ML developer productivity by supporting Jupyter, Seldon, KEDA, Istio, Airflow, Dataflow, BigQuery, and Vertex AI for experimentation, autoscaling, model serving, and data pipelines.",
+          "tags": [],
+          "segments": [
+            {
+              "text": "Enabled ML developer productivity by supporting ",
+              "bold": false
+            },
+            {
+              "text": "Jupyter, Seldon, KEDA, Istio, Airflow, Dataflow, BigQuery, and Vertex AI",
+              "bold": true
+            },
+            {
+              "text": " for experimentation, autoscaling, model serving, and data pipelines.",
+              "bold": false
+            }
+          ]
+        },
+        {
+          "id": "exp_2_b8",
+          "text": "Led incident response, root cause analysis, and observability improvements using OpenTelemetry, Prometheus, and Grafana, reducing MTTR by around 20–30% while strengthening security through RBAC, IAM, and OAuth.",
+          "tags": [],
+          "segments": [
+            {
+              "text": "Led incident response, root cause analysis, and observability improvements using ",
+              "bold": false
+            },
+            {
+              "text": "OpenTelemetry, Prometheus, and Grafana",
+              "bold": true
+            },
+            {
+              "text": ", reducing ",
+              "bold": false
+            },
+            {
+              "text": "MTTR by around 20–30%",
+              "bold": true
+            },
+            {
+              "text": " while strengthening security through ",
+              "bold": false
+            },
+            {
+              "text": "RBAC, IAM, and OAuth",
+              "bold": true
+            },
+            {
+              "text": ".",
+              "bold": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "exp_3",
+      "company": "AstraZeneca",
+      "title": "AWS Cloud Engineer",
+      "location": "India",
+      "start": "December 2015",
+      "end": "November 2021",
+      "bullets": [
+        {
+          "id": "exp_3_b1",
+          "text": "Engineered AWS cloud solutions and supported application migrations, improving scalability, reliability, and cost efficiency.",
+          "tags": [],
+          "segments": [
+            {
+              "text": "Engineered ",
+              "bold": false
+            },
+            {
+              "text": "AWS cloud solutions",
+              "bold": true
+            },
+            {
+              "text": " and supported application migrations, improving scalability, reliability, and cost efficiency.",
+              "bold": false
+            }
+          ]
+        },
+        {
+          "id": "exp_3_b2",
+          "text": "Automated cost, security, and compliance reporting, reducing manual effort and improving operational visibility.",
+          "tags": [],
+          "segments": [
+            {
+              "text": "Automated ",
+              "bold": false
+            },
+            {
+              "text": "cost, security, and compliance reporting",
+              "bold": true
+            },
+            {
+              "text": ", reducing manual effort and improving operational visibility.",
+              "bold": false
+            }
+          ]
+        },
+        {
+          "id": "exp_3_b3",
+          "text": "Built Infrastructure as Code using Terraform and CloudFormation, standardizing cloud provisioning and deployment workflows.",
+          "tags": [],
+          "segments": [
+            {
+              "text": "Built ",
+              "bold": false
+            },
+            {
+              "text": "Infrastructure as Code",
+              "bold": true
+            },
+            {
+              "text": " using ",
+              "bold": false
+            },
+            {
+              "text": "Terraform and CloudFormation",
+              "bold": true
+            },
+            {
+              "text": ", standardizing cloud provisioning and deployment workflows.",
+              "bold": false
+            }
+          ]
+        },
+        {
+          "id": "exp_3_b4",
+          "text": "Enforced AWS security best practices with OAuth, IAM, and compliance controls aligned to GDPR and SOC 2 requirements.",
+          "tags": [],
+          "segments": [
+            {
+              "text": "Enforced ",
+              "bold": false
+            },
+            {
+              "text": "AWS security best practices",
+              "bold": true
+            },
+            {
+              "text": " with ",
+              "bold": false
+            },
+            {
+              "text": "OAuth, IAM, and compliance controls",
+              "bold": true
+            },
+            {
+              "text": " aligned to ",
+              "bold": false
+            },
+            {
+              "text": "GDPR",
+              "bold": true
+            },
+            {
+              "text": " and ",
+              "bold": false
+            },
+            {
+              "text": "SOC 2",
+              "bold": true
+            },
+            {
+              "text": " requirements.",
+              "bold": false
+            }
+          ]
+        },
+        {
+          "id": "exp_3_b5",
+          "text": "Implemented monitoring and observability using CloudWatch, Prometheus, and Grafana, improving system visibility and incident response.",
+          "tags": [],
+          "segments": [
+            {
+              "text": "Implemented monitoring and observability using ",
+              "bold": false
+            },
+            {
+              "text": "CloudWatch, Prometheus, and Grafana",
+              "bold": true
+            },
+            {
+              "text": ", improving system visibility and incident response.",
+              "bold": false
+            }
+          ]
+        },
+        {
+          "id": "exp_3_b6",
+          "text": "Built and maintained CI/CD pipelines with Jenkins, GitLab CI/CD, and AWS CodePipeline, improving release reliability and deployment efficiency.",
+          "tags": [],
+          "segments": [
+            {
+              "text": "Built and maintained ",
+              "bold": false
+            },
+            {
+              "text": "CI/CD pipelines",
+              "bold": true
+            },
+            {
+              "text": " with ",
+              "bold": false
+            },
+            {
+              "text": "Jenkins, GitLab CI/CD, and AWS CodePipeline",
+              "bold": true
+            },
+            {
+              "text": ", improving release reliability and deployment efficiency.",
+              "bold": false
+            }
+          ]
+        },
+        {
+          "id": "exp_3_b7",
+          "text": "Partnered with development teams to improve application performance, deployment stability, and operational support.",
+          "tags": [],
+          "segments": [
+            {
+              "text": "Partnered with development teams to improve ",
+              "bold": false
+            },
+            {
+              "text": "application performance, deployment stability, and operational support",
+              "bold": true
+            },
+            {
+              "text": ".",
+              "bold": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "exp_4",
+      "company": "Wipro",
+      "title": "System Engineer",
+      "location": "India",
+      "start": "August 2013",
+      "end": "December 2015",
+      "bullets": [
+        {
+          "id": "exp_4_b1",
+          "text": "Designed and managed backup infrastructure and disaster recovery solutions, improving data resiliency and reducing recovery times by 35%.",
+          "tags": [],
+          "segments": [
+            {
+              "text": "Designed and managed ",
+              "bold": false
+            },
+            {
+              "text": "backup infrastructure and disaster recovery solutions",
+              "bold": true
+            },
+            {
+              "text": ", improving data resiliency and reducing recovery times by ",
+              "bold": false
+            },
+            {
+              "text": "35%",
+              "bold": true
+            },
+            {
+              "text": ".",
+              "bold": false
+            }
+          ]
+        },
+        {
+          "id": "exp_4_b2",
+          "text": "Administered storage systems, networking, and Linux-based server environments, improving high availability and system performance.",
+          "tags": [],
+          "segments": [
+            {
+              "text": "Administered ",
+              "bold": false
+            },
+            {
+              "text": "storage systems, networking, and Linux-based server environments",
+              "bold": true
+            },
+            {
+              "text": ", improving high availability and system performance.",
+              "bold": false
+            }
+          ]
+        },
+        {
+          "id": "exp_4_b3",
+          "text": "Implemented monitoring and observability tooling, improving infrastructure reliability by 20%.",
+          "tags": [],
+          "segments": [
+            {
+              "text": "Implemented monitoring and observability tooling, improving infrastructure reliability by ",
+              "bold": false
+            },
+            {
+              "text": "20%",
+              "bold": true
+            },
+            {
+              "text": ".",
+              "bold": false
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "projects": [],
+  "education": [
+    {
+      "degree": "Bachelor in Technology",
+      "institution": "MG University, Kerala, India",
+      "year": "July 2013"
+    }
+  ],
+  "languages": [
+    {
+      "name": "English",
+      "level": "Advanced (C1)"
+    },
+    {
+      "name": "German",
+      "level": "Elementary (A2)"
+    }
+  ],
+  "certifications": [
+    "AWS SAA Certification",
+    "AWS SAP Certification",
+    "Google Cloud Certified Associate Engineer",
+    "Certified Kubernetes Administrator",
+    "Commvault Advanced Infrastructure Design Certification",
+    "Python Certification by Michigan University & Coursera"
+  ],
+  "summary_segments": [
+    {
+      "text": "Senior Cloud, Platform, DevOps, and SRE Engineer with ",
+      "bold": false
+    },
+    {
+      "text": "12.5+ years of experience",
+      "bold": true
+    },
+    {
+      "text": " building scalable, secure, and highly available infrastructure across ",
+      "bold": false
+    },
+    {
+      "text": "AWS and GCP",
+      "bold": true
+    },
+    {
+      "text": ". Expertise in ",
+      "bold": false
+    },
+    {
+      "text": "Kubernetes, GKE, Terraform, CI/CD, GitOps, observability, cloud security, and reliability engineering",
+      "bold": true
+    },
+    {
+      "text": ", with a strong track record of improving platform resilience, deployment speed, and operational efficiency. Experienced in building ",
+      "bold": false
+    },
+    {
+      "text": "developer platforms and AI/ML infrastructure",
+      "bold": true
+    },
+    {
+      "text": ", including ",
+      "bold": false
+    },
+    {
+      "text": "GPU-enabled Kubernetes environments, enterprise AI services, and production-grade model deployment workflows",
+      "bold": true
+    },
+    {
+      "text": ". Proven strengths in ",
+      "bold": false
+    },
+    {
+      "text": "automation, incident response, root cause analysis, compliance, cost optimization, and cross-functional collaboration",
+      "bold": true
+    },
+    {
+      "text": ".",
+      "bold": false
+    }
+  ]
+}
