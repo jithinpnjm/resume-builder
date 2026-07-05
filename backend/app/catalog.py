@@ -129,12 +129,22 @@ def resolve_batch(requirements: list[str]) -> dict[str, CatalogEntry | None]:
 
 
 def register_demand(
-    entry: CatalogEntry, company: str, role: str, source_type: str = "application"
+    entry: CatalogEntry,
+    company: str,
+    role: str,
+    source_type: str = "application",
+    role_category: str = "",
 ) -> CatalogEntry:
     now = datetime.now(timezone.utc).isoformat()
     entry.demand_count += 1
     entry.demand_sources.append(
-        DemandSource(company=company, role=role, date=now, source_type=source_type)
+        DemandSource(
+            company=company,
+            role=role,
+            date=now,
+            source_type=source_type,
+            role_category=role_category,
+        )
     )
     entry.last_seen = now
     entry.priority_score = priority_score(entry, 0)
@@ -148,6 +158,7 @@ def create_entry(
     company: str,
     role: str,
     source_type: str = "application",
+    role_category: str = "",
 ) -> CatalogEntry:
     now = datetime.now(timezone.utc).isoformat()
     entry = CatalogEntry(
@@ -156,7 +167,13 @@ def create_entry(
         category=category,
         demand_count=1,
         demand_sources=[
-            DemandSource(company=company, role=role, date=now, source_type=source_type)
+            DemandSource(
+                company=company,
+                role=role,
+                date=now,
+                source_type=source_type,
+                role_category=role_category,
+            )
         ],
         last_seen=now,
     )
@@ -196,13 +213,19 @@ def backfill_from_applications() -> int:
     isn't lost the first time the catalog runs."""
     count = 0
     for app in store.list_applications():
+        role_category = app.role_fit.role_category if app.role_fit else ""
         for gap in app.gaps:
             existing = resolve(gap.requirement)
             if existing is None:
-                entry = create_entry(gap.requirement, "", app.company, app.role_title)
+                entry = create_entry(
+                    gap.requirement, "", app.company, app.role_title,
+                    role_category=role_category,
+                )
                 count += 1
             else:
-                entry = register_demand(existing, app.company, app.role_title)
+                entry = register_demand(
+                    existing, app.company, app.role_title, role_category=role_category
+                )
             gap.canonical_id = entry.canonical_id
             if gap.user_response.status != "not_reviewed":
                 record_user_response(gap, app.id)

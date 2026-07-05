@@ -103,6 +103,35 @@ export default function ApplicationView({
         </p>
       )}
 
+      {record.interview_lens && (
+        <details className="card">
+          <summary>
+            <strong>If you were interviewing for this role</strong> —{" "}
+            {record.interview_lens.persona_title}'s perspective
+          </summary>
+          <div>
+            <h4>What they'd probe for</h4>
+            <ul>
+              {record.interview_lens.what_id_probe.map((q) => (
+                <li key={q}>{q}</li>
+              ))}
+            </ul>
+            <h4>Red flags they'd watch for</h4>
+            <ul>
+              {record.interview_lens.red_flags.map((r) => (
+                <li key={r}>{r}</li>
+              ))}
+            </ul>
+            <h4>What they'd reference if unsure</h4>
+            <ul>
+              {record.interview_lens.reference_points_if_unsure.map((r) => (
+                <li key={r}>{r}</li>
+              ))}
+            </ul>
+          </div>
+        </details>
+      )}
+
       {record.status === "pending_review" && (
         <>
           <section>

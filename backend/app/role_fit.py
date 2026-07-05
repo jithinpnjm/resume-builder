@@ -13,6 +13,7 @@ TARGET_ROLE_CATEGORIES = {
     "senior_mlops",
     "senior_ai_platform",
     "aiops_llmops",
+    "platform_engineering",
 }
 # "related_adjacent" and "unrelated" are the other two values role_category
 # can take — anything not in TARGET_ROLE_CATEGORIES.

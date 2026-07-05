@@ -13,6 +13,17 @@ from .gaps import skills_master
 from .schemas import CatalogEntry, StudyGuideEntry
 
 
+def _dominant_role_category(entry: CatalogEntry) -> str | None:
+    """Most recent target-domain role_category among this entry's demand
+    sources — used to ground the study curator in the right staff persona."""
+    from .role_fit import TARGET_ROLE_CATEGORIES
+
+    for source in reversed(entry.demand_sources):
+        if source.role_category in TARGET_ROLE_CATEGORIES:
+            return source.role_category
+    return None
+
+
 def _why_it_matters(entry: CatalogEntry) -> str:
     recent = entry.demand_sources[-1] if entry.demand_sources else None
     tail = (
@@ -46,6 +57,7 @@ def curate(canonical_id: str) -> StudyGuideEntry:
         skills_master(resume),
         prefs,
         oreilly_access=settings.oreilly_access,
+        role_category=_dominant_role_category(entry),
     )
     structured = gemini_calls.structure_study_guide(research, canonical_id)
     guide = StudyGuideEntry.model_validate(structured)

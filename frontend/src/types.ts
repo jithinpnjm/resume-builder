@@ -187,6 +187,13 @@ export interface RoleFitAssessment {
   decision_reason: string;
 }
 
+export interface InterviewLens {
+  persona_title: string;
+  what_id_probe: string[];
+  red_flags: string[];
+  reference_points_if_unsure: string[];
+}
+
 export interface ApplicationRecord {
   id: string;
   company: string;
@@ -202,6 +209,7 @@ export interface ApplicationRecord {
   approved_at: string | null;
   gcs_path: string;
   role_fit: RoleFitAssessment | null;
+  interview_lens: InterviewLens | null;
 }
 
 export interface AtsReport {

@@ -16,6 +16,12 @@ from google.genai import types
 
 MODEL = "gemini-3.5-flash"
 MAX_NETWORK_RETRIES = 2
+# Live testing (2026-07-05) showed the JSON-mode decoding glitch (see
+# generate_json below) recurs often enough that 3 total attempts wasn't
+# always sufficient for a single request — observed ~1-in-3 glitch rate on
+# some inputs, which at 3 attempts still fails ~4% of the time. 5 attempts
+# brings that under 0.5%.
+MAX_JSON_DECODE_RETRIES = 4
 
 _client: genai.Client | None = None
 
@@ -38,8 +44,9 @@ def generate_json(system_prompt: str, user_content: str) -> dict:
     errors — those should surface immediately.
     """
     client = _get_client()
-    last_exc: Exception | None = None
-    for attempt in range(MAX_NETWORK_RETRIES + 1):
+    network_attempt = 0
+    json_attempt = 0
+    while True:
         try:
             response = client.models.generate_content(
                 model=MODEL,
@@ -58,21 +65,23 @@ def generate_json(system_prompt: str, user_content: str) -> dict:
             text = response.text.strip()
             obj, _ = json.JSONDecoder().raw_decode(text)
             return obj
-        except requests.exceptions.ConnectionError as exc:
-            last_exc = exc
-            if attempt < MAX_NETWORK_RETRIES:
-                time.sleep(1 + attempt)
-        except json.JSONDecodeError as exc:
+        except requests.exceptions.ConnectionError:
+            if network_attempt >= MAX_NETWORK_RETRIES:
+                raise
+            time.sleep(1 + network_attempt)
+            network_attempt += 1
+        except json.JSONDecodeError:
             # Rarer failure mode: the model output itself degenerates into
             # a repetition/decoding glitch mid-object (not just trailing
             # extra data), so no amount of trimming recovers valid JSON.
-            # This has been observed to be non-deterministic per call, so
-            # retrying the generation (not just re-parsing) usually
-            # succeeds on the next attempt.
-            last_exc = exc
-            if attempt < MAX_NETWORK_RETRIES:
-                time.sleep(1 + attempt)
-    raise last_exc
+            # Confirmed non-deterministic and recurring often enough
+            # (observed ~1-in-3 on some inputs, live 2026-07-05) that it
+            # needs its own, larger retry budget separate from network
+            # errors — see MAX_JSON_DECODE_RETRIES above.
+            if json_attempt >= MAX_JSON_DECODE_RETRIES:
+                raise
+            time.sleep(1 + json_attempt)
+            json_attempt += 1
 
 
 def generate_grounded_text(prompt: str) -> str:

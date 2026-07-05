@@ -37,7 +37,7 @@ requirements, both explicit and implied. Return ONLY valid JSON matching this sc
   "nice_to_have_requirements": [ { "requirement": "", "category": "" } ],
   "ats_keywords": ["exact strings likely scanned by ATS - tool names, cert names, methodologies"],
   "company_context": { "industry": "", "product_signal": "" },
-  "role_category": "senior_sre_devops_cloud|senior_mlops|senior_ai_platform|aiops_llmops|related_adjacent|unrelated",
+  "role_category": "senior_sre_devops_cloud|senior_mlops|senior_ai_platform|aiops_llmops|platform_engineering|related_adjacent|unrelated",
   "requires_deep_dev_skills": false,
   "core_dev_languages_required": [],
   "dev_skill_reasoning": ""
@@ -66,11 +66,17 @@ Rules:
 
 Also classify:
 - role_category: one of "senior_sre_devops_cloud", "senior_mlops",
-  "senior_ai_platform", "aiops_llmops", "related_adjacent", "unrelated".
-  The candidate's target roles are Senior SRE/DevOps/Cloud Engineer, Senior
-  MLOps, Senior AI Platform Engineer, and AIOps/LLMOps. "related_adjacent"
-  is for roles clearly in the same infrastructure/platform/ML-ops universe
-  but not an exact fit (e.g. "Platform Reliability Lead", "ML Infrastructure
+  "senior_ai_platform", "aiops_llmops", "platform_engineering",
+  "related_adjacent", "unrelated". The candidate's target roles are Senior
+  SRE/DevOps/Cloud Engineer, Senior MLOps, Senior AI Platform Engineer,
+  AIOps/LLMOps, and Platform Engineering. "platform_engineering" is for
+  roles building internal developer platforms, golden paths, and
+  self-service infrastructure for general product/application teams -
+  distinct from "senior_ai_platform", which is platforms built specifically
+  for AI/ML teams (compute scheduling, model serving infra, feature
+  stores), not general developer platforms. "related_adjacent" is for roles
+  clearly in the same infrastructure/platform/ML-ops universe but not an
+  exact fit (e.g. "Platform Reliability Lead", "ML Infrastructure
   Engineer"). "unrelated" is for roles with no meaningful connection (sales,
   frontend-only, pure data analyst, etc).
 - requires_deep_dev_skills: true if the role's PRIMARY function is software
@@ -191,9 +197,14 @@ ALREADY substantively covered under a different name, tool, or phrasing.
 Be conservative: only mark "already_covered" when the resume content clearly
 demonstrates the underlying skill, not when it's merely plausible or adjacent.
 
-Return ONLY JSON matching: [{ "requirement": "", "already_covered": false,
+Each candidate gap has a fixed "idx" integer. You MUST key your output by that
+same "idx" — do not echo the requirement string back, and do not rely on
+string identity, since your own output text may normalize casing/whitespace
+differently than the input.
+
+Return ONLY JSON matching: [{ "idx": 0, "already_covered": false,
   "covering_evidence": "the specific resume text that covers it, or empty" }]
-Every requirement in the input list must appear as an entry in the output.
+Every idx in the input list must appear exactly once in the output.
 """
 
 
@@ -202,9 +213,8 @@ def check_gap_relevance(
 ) -> list[dict]:
     if not candidate_gaps:
         return []
-    user_content = json.dumps(
-        {"candidate_gaps": candidate_gaps, "resume_text": resume_text}
-    )
+    indexed = [{"idx": i, "requirement": g} for i, g in enumerate(candidate_gaps)]
+    user_content = json.dumps({"candidate_gaps": indexed, "resume_text": resume_text})
     return generate_json(_RELEVANCE_CHECK_PROMPT, user_content)
 
 
@@ -361,6 +371,7 @@ Research and write up (plain prose, include full URLs inline):
 Requirement: {requirement}
 Why it matters to this candidate (demand context): {why_it_matters}
 Candidate's existing skills (for lab-reuse suggestions): {skills}
+{persona_note}
 """
 
 _CURATOR_STRUCTURE_PROMPT = """Convert this research write-up into JSON matching exactly:
@@ -397,7 +408,9 @@ def curate_study_guide_research(
     skills: list[str],
     source_preferences: str = "",
     oreilly_access: bool = False,
+    role_category: str | None = None,
 ) -> str:
+    from .domain_personas import DOMAIN_PERSONAS
     from .gemini_client import generate_grounded_text
 
     oreilly_note = (
@@ -405,12 +418,20 @@ def curate_study_guide_research(
         if oreilly_access
         else "only if it exists — the user hasn't confirmed O'Reilly access"
     )
+    persona = DOMAIN_PERSONAS.get(role_category or "")
+    persona_note = (
+        f"What actually matters at staff level in this domain ({persona['title']}): "
+        f"{persona['study_priorities']}"
+        if persona
+        else ""
+    )
     prompt = _CURATOR_RESEARCH_PROMPT.format(
         requirement=requirement,
         why_it_matters=why_it_matters,
         skills=", ".join(skills),
         source_preferences=source_preferences,
         oreilly_note=oreilly_note,
+        persona_note=persona_note,
     )
     return generate_grounded_text(prompt)
 
@@ -463,8 +484,17 @@ Return ONLY valid JSON matching:
 """
 
 
-def synthesize_market_fit(aggregation: dict) -> dict:
-    return generate_json(_MARKET_FIT_SYSTEM_PROMPT, json.dumps(aggregation))
+def synthesize_market_fit(aggregation: dict, dominant_role_category: str | None = None) -> dict:
+    from .domain_personas import DOMAIN_PERSONAS
+
+    persona = DOMAIN_PERSONAS.get(dominant_role_category or "")
+    lens_note = (
+        f"\n\nGrouping lens for this candidate's domain ({persona['title']}): "
+        f"{persona['requirement_grouping_lens']}"
+        if persona
+        else ""
+    )
+    return generate_json(_MARKET_FIT_SYSTEM_PROMPT + lens_note, json.dumps(aggregation))
 
 
 # ---------------------------------------------------------------------------

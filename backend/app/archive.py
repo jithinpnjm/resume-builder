@@ -306,12 +306,17 @@ def aggregate_market_fit(since: str = "") -> dict:
     # ("vault") once canonicalization has merged it with an existing entry.
     confirmed_canonical_ids: dict[str, str] = {}
     match_rate: list[MatchRatePoint] = []
+    role_category_counts: dict[str, int] = {}
 
     for app in store.list_applications():
         if since and (app.created_at or "") < since:
             continue
         if app.jd_analysis is None:
             continue
+        if app.role_fit is not None:
+            role_category_counts[app.role_fit.role_category] = (
+                role_category_counts.get(app.role_fit.role_category, 0) + 1
+            )
         gap_status = {g.requirement: g.user_response.status for g in app.gaps}
         must = app.jd_analysis.must_have_requirements
         matched, _ = _matched_requirement_ids(must, gap_status)
@@ -352,11 +357,17 @@ def aggregate_market_fit(since: str = "") -> dict:
         if entry.promote_suggestion_dismissed:
             continue
         promotable[req] = {"count": count, "canonical_id": canonical_id}
+    dominant_role_category = (
+        max(role_category_counts, key=role_category_counts.get)
+        if role_category_counts
+        else None
+    )
     return {
         "requirement_counts": requirement_counts,
         "requirement_gap_counts": requirement_gap_counts,
         "confirmed_not_promoted_counts": promotable,
         "match_rate_by_date": [p.model_dump() for p in sorted(match_rate, key=lambda p: p.date)],
+        "dominant_role_category": dominant_role_category,
     }
 
 
@@ -364,7 +375,9 @@ def build_market_fit_report(since: str = "") -> MarketFitReport:
     from . import gemini_calls
 
     aggregation = aggregate_market_fit(since)
-    synthesis = gemini_calls.synthesize_market_fit(aggregation)
+    synthesis = gemini_calls.synthesize_market_fit(
+        aggregation, aggregation.get("dominant_role_category")
+    )
     now = datetime.now(timezone.utc).isoformat()
     report = MarketFitReport.model_validate(
         {

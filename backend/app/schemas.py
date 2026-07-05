@@ -275,6 +275,9 @@ class DemandSource(BaseModel):
     # bulk JD intake). The catalog blends both; only the Job Market Analysis
     # dashboard filters to application-sourced signal.
     source_type: Literal["application", "trend_scan"] = "application"
+    # JDAnalysis.role_category of the posting that surfaced this demand, so
+    # the Study Guide curator can ground itself in the right domain persona.
+    role_category: str = ""
 
 
 class StatusHistoryEntry(BaseModel):
@@ -488,6 +491,10 @@ class ApplicationRecord(BaseModel):
     approved_at: str | None = None
     gcs_path: str = ""
     role_fit: RoleFitAssessment | None = None
+    # Static staff-engineer interview lens for this JD's role_category —
+    # copied verbatim from domain_personas.DOMAIN_PERSONAS at analysis time,
+    # not LLM-generated. None for related_adjacent/unrelated roles.
+    interview_lens: dict | None = None
 
 
 # ---------------------------------------------------------------------------

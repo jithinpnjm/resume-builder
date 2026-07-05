@@ -96,10 +96,13 @@ def run_scan(postings: list[str]) -> TrendScanBatch:
             if entry is None:
                 entry = catalog.create_entry(
                     req.requirement, req.category, "", jd.role_title,
-                    source_type="trend_scan",
+                    source_type="trend_scan", role_category=jd.role_category,
                 )
             else:
-                catalog.register_demand(entry, "", jd.role_title, source_type="trend_scan")
+                catalog.register_demand(
+                    entry, "", jd.role_title,
+                    source_type="trend_scan", role_category=jd.role_category,
+                )
 
             if req.requirement not in gapped:
                 continue  # resume covers it — demand counted, nothing to review

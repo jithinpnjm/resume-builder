@@ -14,6 +14,7 @@ from fastapi.responses import Response
 from pydantic import BaseModel
 
 from . import archive, catalog, gemini_calls, role_fit, sources, store, studyguide
+from .domain_personas import DOMAIN_PERSONAS
 from .gaps import compute_skill_match_pct, detect_gaps, skills_master, suppress_false_positive_gaps
 from .parser import SUPPORTED_EXTENSIONS, extract_text, parse_resume_to_json
 from .renderer import render_docx, render_pdf
@@ -193,11 +194,16 @@ def create_application(req: CreateApplicationRequest) -> ApplicationRecord:
         # unconfirmed → reuse the stored education, bump demand only.
         entry = resolved.get(gap.requirement)
         if entry is None:
-            entry = catalog.create_entry(gap.requirement, "", req.company, role)
+            entry = catalog.create_entry(
+                gap.requirement, "", req.company, role,
+                role_category=jd_analysis.role_category,
+            )
             gap.canonical_id = entry.canonical_id
             gap.education = gemini_calls.educate_gap(gap.requirement, gap.jd_context, master)
         else:
-            catalog.register_demand(entry, req.company, role)
+            catalog.register_demand(
+                entry, req.company, role, role_category=jd_analysis.role_category
+            )
             gap.canonical_id = entry.canonical_id
             if entry.status_history:
                 last = entry.status_history[-1]
@@ -213,6 +219,12 @@ def create_application(req: CreateApplicationRequest) -> ApplicationRecord:
                     gap.requirement, gap.jd_context, master
                 )
 
+    persona = DOMAIN_PERSONAS.get(jd_analysis.role_category)
+    interview_lens = (
+        {"persona_title": persona["title"], **persona["interview_lens"]}
+        if persona
+        else None
+    )
     record = ApplicationRecord(
         company=req.company,
         role_title=role,
@@ -222,6 +234,7 @@ def create_application(req: CreateApplicationRequest) -> ApplicationRecord:
         tailoring_plan=tailoring_plan,
         gaps=gaps,
         role_fit=fit,
+        interview_lens=interview_lens,
     )
     # Persist immediately (v3 §5) — a crash or closed tab after this point
     # must not lose the analysis.

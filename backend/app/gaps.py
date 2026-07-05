@@ -8,9 +8,12 @@ Call 3 afterward.
 """
 from __future__ import annotations
 
+import logging
 import re
 
 from .schemas import GapItem, JDAnalysis, ResumeJSON
+
+logger = logging.getLogger(__name__)
 
 
 def _resume_full_text(resume: ResumeJSON) -> str:
@@ -150,7 +153,12 @@ def suppress_false_positive_gaps(
     actual prose — not just keywords. This can only REMOVE a wrongly-created
     gap; it never adds content or lets the LLM assert experience on the
     candidate's behalf. Best-effort: if the check call fails for any reason,
-    fall back to the deterministic gaps as-is rather than blocking the flow."""
+    fall back to the deterministic gaps as-is rather than blocking the flow.
+
+    Matches results back to gaps by index, not by echoed requirement string —
+    Gemini can normalize casing/whitespace on the way back even when told not
+    to, which would silently break string-equality matching and let a real
+    false positive through unsuppressed."""
     if not gaps:
         return gaps
     from . import gemini_calls
@@ -158,9 +166,8 @@ def suppress_false_positive_gaps(
     text = _resume_full_text(resume)
     try:
         results = gemini_calls.check_gap_relevance([g.requirement for g in gaps], text)
-    except Exception:
+    except Exception as exc:
+        logger.warning("gap relevance check failed, keeping all gaps: %s", exc)
         return gaps
-    covered = {
-        r.get("requirement") for r in results if r.get("already_covered") is True
-    }
-    return [g for g in gaps if g.requirement not in covered]
+    covered_idx = {r["idx"] for r in results if r.get("already_covered") is True}
+    return [g for i, g in enumerate(gaps) if i not in covered_idx]
