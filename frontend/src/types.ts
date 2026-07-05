@@ -91,6 +91,11 @@ export interface JDAnalysis {
   nice_to_have_requirements: NiceToHaveRequirement[];
   ats_keywords: string[];
   company_context: { industry: string; product_signal: string };
+  role_category: string;
+  requires_deep_dev_skills: boolean;
+  core_dev_languages_required: string[];
+  dev_skill_reasoning: string;
+  distinct_specialist_domains: string[];
 }
 
 export interface BulletPlanItem {

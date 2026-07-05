@@ -128,7 +128,8 @@ def run_scan(postings: list[str]) -> TrendScanBatch:
             )
             prior = _prior_education(entry.canonical_id)
             item.education = prior or gemini_calls.educate_gap(
-                req.requirement, item.jd_context, master
+                req.requirement, item.jd_context, master,
+                role_category=jd.role_category,
             )
             review_by_canonical[entry.canonical_id] = item
 

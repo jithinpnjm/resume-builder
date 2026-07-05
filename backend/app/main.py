@@ -199,7 +199,10 @@ def create_application(req: CreateApplicationRequest) -> ApplicationRecord:
                 role_category=jd_analysis.role_category,
             )
             gap.canonical_id = entry.canonical_id
-            gap.education = gemini_calls.educate_gap(gap.requirement, gap.jd_context, master)
+            gap.education = gemini_calls.educate_gap(
+                gap.requirement, gap.jd_context, master,
+                role_category=jd_analysis.role_category,
+            )
         else:
             catalog.register_demand(
                 entry, req.company, role, role_category=jd_analysis.role_category
@@ -216,7 +219,8 @@ def create_application(req: CreateApplicationRequest) -> ApplicationRecord:
                 gap.education = prior
             else:
                 gap.education = gemini_calls.educate_gap(
-                    gap.requirement, gap.jd_context, master
+                    gap.requirement, gap.jd_context, master,
+                    role_category=jd_analysis.role_category,
                 )
 
     persona = DOMAIN_PERSONAS.get(jd_analysis.role_category)

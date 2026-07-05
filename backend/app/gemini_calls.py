@@ -40,7 +40,8 @@ requirements, both explicit and implied. Return ONLY valid JSON matching this sc
   "role_category": "senior_sre_devops_cloud|senior_mlops|senior_ai_platform|aiops_llmops|platform_engineering|related_adjacent|unrelated",
   "requires_deep_dev_skills": false,
   "core_dev_languages_required": [],
-  "dev_skill_reasoning": ""
+  "dev_skill_reasoning": "",
+  "distinct_specialist_domains": []
 }
 
 Rules:
@@ -87,6 +88,22 @@ Also classify:
   don't count as "deep dev skills" for this candidate even if required -
   they're already covered. Only flag languages beyond those.
 - dev_skill_reasoning: one sentence justifying requires_deep_dev_skills.
+- distinct_specialist_domains: list each genuinely distinct, hire-worthy
+  specialization this role hard-requires SIMULTANEOUSLY as a real job would
+  normally split across different people (e.g. "security_architecture",
+  "identity_and_access_management", "compliance_and_governance",
+  "people_management", "hands_on_software_development", "data_engineering",
+  "product_management"). This is NOT a proxy for how many requirements or
+  tools are listed - a JD with 20 requirements all inside one coherent
+  domain (e.g. Kubernetes, Terraform, Prometheus, Grafana, Helm, ArgoCD for
+  an SRE role) is ONE domain ("infrastructure_platform_engineering"), not
+  many, even though it names many tools. Only add a SEPARATE domain when the
+  requirement represents a fundamentally different career track a company
+  would normally hire a dedicated specialist for - e.g. a role asking for
+  deep hands-on coding AND people leadership AND security architecture
+  design AND compliance/regulatory ownership AND identity/IAM expertise all
+  as hard requirements genuinely spans five separate domains. Leave this
+  list short (0-2 entries) for the vast majority of normal, focused JDs.
 """
 
 
@@ -222,25 +239,29 @@ def check_gap_relevance(
 # Call 3 — Gap Educator (once per gap)
 # ---------------------------------------------------------------------------
 
-_GAP_EDUCATOR_SYSTEM_PROMPT = """You are helping a Senior Cloud/DevOps/SRE/MLOps/LLMOps engineer
-understand a technology gap between their resume and a job description. Explain
-it the way a senior peer would, not a generic tutorial. Return ONLY JSON matching:
+_GAP_EDUCATOR_SYSTEM_PROMPT = """You are a staff-level peer explaining a technology gap to a
+Senior Cloud/DevOps/SRE/MLOps/LLMOps engineer, in the terse, direct way a sharp colleague
+talks at a whiteboard - not a tutorial, not a textbook. Return ONLY JSON matching:
 
 {
-  "what_it_is": "2-3 sentence plain explanation",
-  "typical_use_case_for_role": "how a Senior SRE/DevOps/Cloud/MLOps engineer specifically touches this operationally day-to-day - not what a backend developer does with it",
-  "sample_scenario": "a concrete short scenario: 'if you were asked to operate {requirement} at this company, you'd likely be doing X, Y, Z'",
-  "closest_known_alternative": "MUST name specific tools from the candidate's actual skills list and explain the conceptual overlap - never a generic 'similar to other databases' statement",
-  "other_alternatives_in_market": ["2-4 comparable tools"]
+  "what_it_is": "ONE sentence, plain definition - no preamble",
+  "typical_use_case_for_role": "ONE sentence: the single most operationally important thing this role does with it (deployment/scaling/monitoring/failure-modes/cost) - not a list of everything it could touch",
+  "sample_scenario": "ONE short sentence, concrete, not a paragraph: 'you'd likely be doing X'",
+  "closest_known_alternative": "ONE sentence naming a specific tool from the candidate's actual skills list and the ONE thing that transfers directly - skip this field (empty string) rather than force a comparison to an unrelated tool",
+  "other_alternatives_in_market": ["2-4 comparable tools, names only"]
 }
 
-Rules:
-- typical_use_case_for_role must be scoped to the target role family's operational
-  perspective: deployment, scaling, monitoring, backup/restore, failure modes, cost.
-- closest_known_alternative MUST reference specific items from the candidate's
-  skills list by name and say what transfers directly.
-- Keep the whole thing readable by a senior engineer in 90 seconds.
-- Plain text only in every field - no markdown, no ** bold markers.
+HARD RULES:
+- The whole response (all four text fields combined) must be under 100 words total.
+  This is a hard cap, not a suggestion - if you're over, cut adjectives and hedging,
+  not substance.
+- One sentence per field, no exceptions. If you need a second sentence, you're
+  explaining too much - cut it.
+- closest_known_alternative must be empty ("") if nothing in the candidate's skills
+  list has genuine conceptual overlap - a forced, generic comparison ("similar to
+  other databases") is worse than admitting there isn't a close match.
+- Plain text only - no markdown, no ** bold markers, no bullet points inside a field.
+- {persona_note}
 """
 
 
@@ -249,7 +270,16 @@ def educate_gap(
     jd_context: str,
     skills_master: list[str],
     role_family: str = "Cloud Engineer / DevOps / SRE / MLOps / AI Infrastructure / LLMOps",
+    role_category: str | None = None,
 ) -> GapEducation:
+    from .domain_personas import DOMAIN_PERSONAS
+
+    persona = DOMAIN_PERSONAS.get(role_category or "")
+    persona_note = (
+        f"Frame this the way a {persona['title']} would: {persona['mental_model']}"
+        if persona
+        else "Frame this from a pragmatic infrastructure/platform operator's perspective."
+    )
     user_content = json.dumps(
         {
             "requirement": requirement,
@@ -258,7 +288,8 @@ def educate_gap(
             "target_role_family": role_family,
         }
     )
-    data = generate_json(_GAP_EDUCATOR_SYSTEM_PROMPT, user_content)
+    prompt = _GAP_EDUCATOR_SYSTEM_PROMPT.replace("{persona_note}", persona_note)
+    data = generate_json(prompt, user_content)
     return GapEducation.model_validate(data)
 
 

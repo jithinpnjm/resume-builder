@@ -142,6 +142,13 @@ class JDAnalysis(BaseModel):
     requires_deep_dev_skills: bool = False
     core_dev_languages_required: list[str] = Field(default_factory=list)
     dev_skill_reasoning: str = ""
+    # Genuinely distinct, hire-worthy specializations this role hard-requires
+    # simultaneously (e.g. "security_architecture" + "identity_and_access_management"
+    # + "people_management" + "hands_on_software_development" all at once) — a
+    # signal for unrealistic-scope JDs, NOT a proxy for requirement count. A JD
+    # with 20 requirements all inside one coherent domain (e.g. deep Kubernetes/
+    # observability) should list ONE domain here, not many.
+    distinct_specialist_domains: list[str] = Field(default_factory=list)
 
 
 # ---------------------------------------------------------------------------
