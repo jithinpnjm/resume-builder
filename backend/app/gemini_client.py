@@ -62,6 +62,16 @@ def generate_json(system_prompt: str, user_content: str) -> dict:
             last_exc = exc
             if attempt < MAX_NETWORK_RETRIES:
                 time.sleep(1 + attempt)
+        except json.JSONDecodeError as exc:
+            # Rarer failure mode: the model output itself degenerates into
+            # a repetition/decoding glitch mid-object (not just trailing
+            # extra data), so no amount of trimming recovers valid JSON.
+            # This has been observed to be non-deterministic per call, so
+            # retrying the generation (not just re-parsing) usually
+            # succeeds on the next attempt.
+            last_exc = exc
+            if attempt < MAX_NETWORK_RETRIES:
+                time.sleep(1 + attempt)
     raise last_exc
 
 
