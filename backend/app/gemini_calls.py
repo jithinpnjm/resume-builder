@@ -341,37 +341,51 @@ def build_study_plan(
 # URL validation (sources.validate_urls) runs afterward and drops dead links.
 # ---------------------------------------------------------------------------
 
-_CURATOR_RESEARCH_PROMPT = """Build a complete study curriculum for a Senior Cloud/DevOps/SRE/MLOps/LLMOps
-engineer to genuinely learn {requirement}, not skim it. This is reference material they
-will return to repeatedly, not a one-time overview - treat it with the thoroughness of a
-real course syllabus. Use Google Search for everything current - never rely on memory for
-URLs, book editions, or repo names. {source_preferences}
+_CURATOR_RESEARCH_PROMPT = """Build the complete, end-to-end topic checklist a Senior
+Cloud/DevOps/SRE/MLOps/LLMOps engineer needs to genuinely master {requirement} —
+this checklist IS the deliverable. Someone who has worked through every topic here
+should be able to speak fluently, without notes, in a staff-level interview about
+this tool end-to-end. Do not leave out operationally important sub-topics for the
+sake of brevity — thoroughness matters more than length. {source_preferences}
+{persona_note}
 
-Research and write up (plain prose, include full URLs inline):
-1. At least one genuinely authoritative BOOK on this topic - real title, real authors, and
-   a specific reason it's right for this role level. Search for its O'Reilly catalog page
-   ({oreilly_note}) and include the URL. If genuinely not on O'Reilly, find its publisher
-   or a well-established bookseller page instead - never leave a book without a URL.
-2. A real progression of 3-4 steps: foundational concepts -> a hands-on lab that reuses
-   the candidate's existing skills where possible -> operate-it-like-production
-   (failure simulation, what an SRE watches) -> interview-readiness. Each step needs a
-   concrete, CHECKABLE goal ("explain X without notes", "recover from a killed broker"),
-   not "learn about X".
-3. For the hands-on lab: search for and verify a real, currently-maintained GitHub repo
-   suited to it (recent commits/stars) - include its URL. Do not invent one.
-4. Resources per step: official documentation for foundational steps, deeper blogs/
-   talks for operational nuance. Full URLs inline for everything.
-5. Honest interview talking points - lab-level exposure framed as lab-level, unless the
-   candidate's history shows real production experience.
-6. If a structured course/portal (O'Reilly Learning Platform, A Cloud Guru, KodeKloud,
-   Linux Foundation Training, Coursera, Pluralsight) has strong, currently-available
-   coverage of this topic, include it as a "portal" resource with a real, verified URL -
-   this candidate uses structured platforms, not only ad-hoc blog posts.
+Research and write up (plain prose):
+
+1. Break the tool into as many steps as it genuinely needs (do not force it into a
+   fixed 3-4 — a tool like MLflow needs distinct coverage of setup, core tracking
+   workflow, versioning/comparison, model registry, staging/deployment integration,
+   and production failure modes; a simpler tool may need fewer). For EACH step,
+   list the SPECIFIC, checkable topics inside it — not "learn experiment tracking"
+   but "log params/metrics/artifacts for a run," "compare two runs and explain what
+   changed," "understand what's auto-logged vs what needs manual instrumentation."
+   Concrete example of the right granularity, for MLflow: a "Core workflow" step's
+   topics would include installing and running the tracking server, logging a first
+   run, understanding the experiment→run→artifact hierarchy, comparing runs in the
+   UI, and manual vs autolog instrumentation — five distinct, checkable items, not
+   one vague "learn tracking" bullet.
+2. For the hands-on lab (attach to whichever step it fits): search for and verify a
+   real, currently-maintained GitHub repo (recent commits/stars) — include its URL,
+   never invent one.
+3. At least one genuinely authoritative BOOK — real title, real authors, a specific
+   reason it fits this role level. Search for its O'Reilly catalog page
+   ({oreilly_note}); fall back to publisher/bookseller URL if not on O'Reilly.
+4. Curated resources — AT MOST 3 TOTAL for this entire topic, combined, not per
+   step. Only a specific named YouTube video/channel, a specific named Udemy
+   course, or a specific well-regarded technical blog post qualifies. For each,
+   state exactly why THIS one, specifically — not generic praise. NEVER include a
+   generic official-documentation homepage as a resource — if docs are relevant,
+   that's assumed/implicit, not something to list as a curated pick. Zero resources
+   is a completely acceptable answer if nothing genuinely excellent turned up —
+   quality bar over filling a quota.
+5. Honest interview talking points per step — lab-level exposure framed as
+   lab-level, unless the candidate's history shows real production experience.
+6. A final interview-readiness checklist: 5-8 self-check questions the candidate
+   should be able to answer fluently, without notes, once they've worked through
+   everything above.
 
 Requirement: {requirement}
 Why it matters to this candidate (demand context): {why_it_matters}
 Candidate's existing skills (for lab-reuse suggestions): {skills}
-{persona_note}
 """
 
 _CURATOR_STRUCTURE_PROMPT = """Convert this research write-up into JSON matching exactly:
@@ -383,22 +397,27 @@ _CURATOR_STRUCTURE_PROMPT = """Convert this research write-up into JSON matching
   "steps": [
     {
       "step_number": 1, "title": "", "goal": "",
-      "concepts": [""],
-      "resources": [{ "type": "docs|blog|course|video|book|portal|repo", "title": "", "url": "", "source": "official|medium|linkedin|tldr|udemy|oreilly|acloudguru|kodekloud|github|other" }],
+      "topics": ["specific, checkable sub-skills — as many as the step genuinely needs"],
       "hands_on_lab": { "title": "", "repo_url": "", "why_this_lab": "", "est_hours": 4 },
       "sample_project": { "title": "", "repo_url": "", "description": "" },
       "interview_talking_points": [""],
       "est_hours": 2, "done": false
     }
-  ]
+  ],
+  "curated_resources": [
+    { "type": "blog|youtube|udemy", "title": "", "url": "", "why_this_one": "" }
+  ],
+  "interview_readiness_checklist": ["5-8 self-check questions"]
 }
 
-Rules: only include URLs that literally appear in the research text - never invent or
-"fix" a URL. recommended_books must carry the real title/authors from the research, plus
-oreilly_url if an O'Reilly catalog page was found, else publisher_url as the fallback -
-never leave both empty if the research found ANY book URL. hands_on_lab/sample_project
-may be null on steps where they don't apply. Goals must be checkable actions, not vague
-intentions. Return ONLY the JSON object.
+Rules: curated_resources is capped at 3 items TOTAL across the whole entry — if the
+research found fewer than 3 genuinely good ones, return fewer, do not pad. Never
+include a "docs" or "portal" type resource here even if the research mentions
+official documentation in passing — that's fine as prose context, not a listed
+resource. topics arrays should be as long as genuinely needed per step — do not
+compress a step's checklist to save space. hands_on_lab/sample_project may be null
+on steps where they don't apply. Only include URLs that literally appear in the
+research text — never invent or "fix" one. Return ONLY the JSON object.
 """
 
 

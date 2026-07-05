@@ -233,14 +233,6 @@ export interface CatalogEntry {
   promote_suggestion_dismissed: boolean;
 }
 
-export interface StudyGuideResource {
-  type: string;
-  title: string;
-  url: string;
-  source: string;
-  url_valid: boolean;
-}
-
 export interface StudyGuideLab {
   title: string;
   repo_url: string;
@@ -252,8 +244,7 @@ export interface StudyGuideStep {
   step_number: number;
   title: string;
   goal: string;
-  concepts: string[];
-  resources: StudyGuideResource[];
+  topics: string[];
   hands_on_lab: StudyGuideLab | null;
   sample_project: { title: string; repo_url: string; description: string } | null;
   interview_talking_points: string[];
@@ -269,12 +260,22 @@ export interface RecommendedBook {
   publisher_url: string;
 }
 
+export interface CuratedResource {
+  type: "blog" | "youtube" | "udemy";
+  title: string;
+  url: string;
+  why_this_one: string;
+  url_valid: boolean;
+}
+
 export interface StudyGuideEntry {
   canonical_id: string;
   priority_score: number;
   why_it_matters: string;
   recommended_books: RecommendedBook[];
   steps: StudyGuideStep[];
+  curated_resources: CuratedResource[];
+  interview_readiness_checklist: string[];
   last_curated_at: string;
   url_validation_status: string;
 }

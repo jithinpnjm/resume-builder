@@ -311,14 +311,6 @@ class CatalogEntry(BaseModel):
 # StudyGuide v3 §6 — real, sequenced curriculum, one per catalog entry
 # ---------------------------------------------------------------------------
 
-class StudyGuideResource(BaseModel):
-    type: str = ""  # docs|blog|course|video|book|portal|repo
-    title: str = ""
-    url: str = ""
-    source: str = ""  # official|medium|linkedin|tldr|udemy|oreilly|acloudguru|kodekloud|...
-    url_valid: bool = True
-
-
 class StudyGuideLab(BaseModel):
     title: str = ""
     repo_url: str = ""
@@ -336,13 +328,17 @@ class StudyGuideStep(BaseModel):
     step_number: int
     title: str = ""
     goal: str = ""
-    concepts: list[str] = Field(default_factory=list)
-    resources: list[StudyGuideResource] = Field(default_factory=list)
+    # The exhaustive, specific, checkable checklist for this step — this IS
+    # the deliverable, not supporting detail. Renamed from `concepts`, which
+    # read as vague one-liners rather than a genuine completeness checklist.
+    topics: list[str] = Field(default_factory=list)
     hands_on_lab: StudyGuideLab | None = None
     sample_project: StudyGuideSampleProject | None = None
     interview_talking_points: list[str] = Field(default_factory=list)
     est_hours: float = 0
     done: bool = False
+    # `resources` removed from step level (study-room-redesign patch) —
+    # resources moved to CuratedResource at the entry level, capped at 3.
 
 
 class RecommendedBook(BaseModel):
@@ -353,12 +349,24 @@ class RecommendedBook(BaseModel):
     publisher_url: str = ""   # fallback if not on O'Reilly (publisher/Amazon)
 
 
+class CuratedResource(BaseModel):
+    type: Literal["blog", "youtube", "udemy"] = "blog"
+    title: str = ""
+    url: str = ""
+    why_this_one: str = ""  # forces genuine justification, not padding
+    url_valid: bool = True
+
+
 class StudyGuideEntry(BaseModel):
     canonical_id: str
     priority_score: float = 0.0
     why_it_matters: str = ""
     recommended_books: list[RecommendedBook] = Field(default_factory=list)
     steps: list[StudyGuideStep] = Field(default_factory=list)
+    # Entry-level, capped at 0-3 TOTAL across the whole guide — links are a
+    # minor addition; the topics checklist above is the actual product.
+    curated_resources: list[CuratedResource] = Field(default_factory=list)
+    interview_readiness_checklist: list[str] = Field(default_factory=list)
     last_curated_at: str = ""
     url_validation_status: Literal["all_checked", "some_stale"] = "all_checked"
 

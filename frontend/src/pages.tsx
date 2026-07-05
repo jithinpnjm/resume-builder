@@ -242,10 +242,12 @@ export function StudyGuidePage() {
                 <p>
                   <strong>Goal:</strong> {step.goal}
                 </p>
-                {step.concepts.length > 0 && (
-                  <p>
-                    <strong>Concepts:</strong> {step.concepts.join(" · ")}
-                  </p>
+                {step.topics.length > 0 && (
+                  <ul className="topic-checklist">
+                    {step.topics.map((t) => (
+                      <li key={t}>{t}</li>
+                    ))}
+                  </ul>
                 )}
                 {step.hands_on_lab && (
                   <p>
@@ -258,18 +260,6 @@ export function StudyGuidePage() {
                     )}
                   </p>
                 )}
-                {step.resources.length > 0 && (
-                  <ul>
-                    {step.resources.map((r, i) => (
-                      <li key={i}>
-                        <a href={r.url} target="_blank" rel="noreferrer">
-                          {r.title || r.url}
-                        </a>{" "}
-                        <span className="muted">({r.source})</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
                 {step.interview_talking_points.length > 0 && (
                   <p>
                     <strong>Interview framing:</strong>{" "}
@@ -279,6 +269,33 @@ export function StudyGuidePage() {
               </div>
             </details>
           ))}
+
+          {guide.curated_resources.length > 0 && (
+            <div className="card">
+              <h4>A few worth checking out</h4>
+              {guide.curated_resources.map((r) => (
+                <p key={r.url}>
+                  <a href={r.url} target="_blank" rel="noreferrer">
+                    {r.title || r.url}
+                  </a>{" "}
+                  <span className="muted">({r.type})</span>
+                  <br />
+                  <span className="muted">{r.why_this_one}</span>
+                </p>
+              ))}
+            </div>
+          )}
+
+          {guide.interview_readiness_checklist.length > 0 && (
+            <div className="card">
+              <h4>Interview-ready check</h4>
+              <ul>
+                {guide.interview_readiness_checklist.map((q) => (
+                  <li key={q}>{q}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </section>
       ))}
 

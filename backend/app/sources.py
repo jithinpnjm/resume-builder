@@ -93,15 +93,16 @@ def validate_urls_in_guide(entry: StudyGuideEntry) -> StudyGuideEntry:
             except Exception:
                 return False
 
+        kept_resources = []
+        for resource in entry.curated_resources:
+            if check(resource.url):
+                resource.url_valid = True
+                kept_resources.append(resource)
+            else:
+                all_ok = False  # dropped, not shipped
+        entry.curated_resources = kept_resources
+
         for step in entry.steps:
-            kept = []
-            for resource in step.resources:
-                if check(resource.url):
-                    resource.url_valid = True
-                    kept.append(resource)
-                else:
-                    all_ok = False  # dropped, not shipped
-            step.resources = kept
             if step.hands_on_lab and step.hands_on_lab.repo_url:
                 if not check(step.hands_on_lab.repo_url):
                     step.hands_on_lab.repo_url = ""
