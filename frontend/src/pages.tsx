@@ -135,8 +135,16 @@ export function StudyGuidePage() {
     load();
   }, []);
 
-  const curated = new Set(guides.map((g) => g.canonical_id));
-  const uncurated = catalogIds.filter((c) => !curated.has(c.canonical_id));
+  const guideByCanonicalId = new Map(guides.map((g) => [g.canonical_id, g]));
+  const uncurated = catalogIds.filter((c) => !guideByCanonicalId.has(c.canonical_id));
+  // Demand can shift (e.g. after a Trend Scan) without spending a curation
+  // call automatically — the backend only flags drift, it never re-curates
+  // on its own. Surface the drifted ones here so refreshing is a deliberate,
+  // one-click choice instead of an automatic background cost.
+  const stale = catalogIds.filter((c) => {
+    const guide = guideByCanonicalId.get(c.canonical_id);
+    return guide !== undefined && Math.abs(guide.priority_score - c.score) >= 0.1;
+  });
 
   async function curate(id: string) {
     setBusy(id);
@@ -164,6 +172,29 @@ export function StudyGuidePage() {
         gap severity). Links are search-grounded and validated — dead links are dropped.
       </p>
       {error && <p className="error">{error}</p>}
+
+      {stale.length > 0 && (
+        <section>
+          <h2>Study guides needing a refresh</h2>
+          <p className="muted">
+            Demand shifted since these were last curated — refreshing costs a search-
+            grounded curation call, so it's a manual choice, not automatic.
+          </p>
+          {stale.map((c) => (
+            <div key={c.canonical_id} className="card">
+              <strong>{c.name}</strong>{" "}
+              <span className="score num">score {c.score.toFixed(2)}</span>
+              <div className="gap-actions">
+                <button onClick={() => curate(c.canonical_id)} disabled={busy !== null}>
+                  {busy === c.canonical_id
+                    ? "Curating… (search-grounded, ~1-2 min)"
+                    : "Refresh curriculum"}
+                </button>
+              </div>
+            </div>
+          ))}
+        </section>
+      )}
 
       {uncurated.length > 0 && (
         <section>

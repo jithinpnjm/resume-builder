@@ -11,7 +11,7 @@ import os
 import uuid
 from datetime import datetime, timezone
 
-from . import catalog, gemini_calls, role_fit, store, studyguide
+from . import catalog, gemini_calls, role_fit, store
 from .gaps import (
     compute_skill_match_pct,
     detect_gaps,
@@ -189,15 +189,21 @@ def respond(batch_id: str, item_index: int, status: str, user_note: str) -> Tren
 
 
 def complete(batch_id: str) -> dict:
-    """Close the batch: recompute scores and regenerate study guides for
-    entries that changed materially or lack a guide."""
+    """Close the batch: recompute scores and flag entries whose study guide
+    is missing or stale (priority_score has moved enough to warrant a
+    refresh). Deliberately does NOT call Gemini here — study-guide curation
+    is a real cost (search-grounded research + structuring, ~2 calls per
+    entry) and completing a scan can touch many entries at once. Flagging
+    lets the Study Room surface exactly which entries need attention while
+    leaving the actual (paid) curation call to an explicit user click, same
+    as any other Build-curriculum action."""
     batch = get_batch(batch_id)
     if batch is None:
         raise ValueError("Batch not found")
 
     catalog.refresh_scores()
 
-    regenerated: list[str] = []
+    stale: list[str] = []
     touched_ids = {i.canonical_id for i in batch.review_items} | {
         e.canonical_id
         for e in store.list_catalog()
@@ -210,16 +216,12 @@ def complete(batch_id: str) -> dict:
         guide = store.get_study_guide(cid)
         needs = guide is None or abs(entry.priority_score - guide.priority_score) >= _SCORE_DELTA_THRESHOLD
         if needs:
-            try:
-                studyguide.curate(cid)
-                regenerated.append(cid)
-            except Exception:
-                pass  # curation is best-effort here; the Study Room can retry
+            stale.append(cid)
 
     batch.status = "completed"
     batch.completed_at = datetime.now(timezone.utc).isoformat()
     save_batch(batch)
-    return {"batch_id": batch_id, "study_guides_regenerated": regenerated}
+    return {"batch_id": batch_id, "study_guides_stale": stale}
 
 
 def _write_trend_events(batch: TrendScanBatch, score_before: dict[str, float]) -> None:

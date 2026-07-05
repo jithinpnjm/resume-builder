@@ -206,7 +206,7 @@ export function respondTrendItem(
 }
 
 export function completeTrendScan(batchId: string) {
-  return request<{ batch_id: string; study_guides_regenerated: string[] }>(
+  return request<{ batch_id: string; study_guides_stale: string[] }>(
     `/trend-scan/${batchId}/complete`,
     { method: "POST" }
   );

@@ -62,9 +62,9 @@ export default function TrendScanPage({ onGuidesChanged }: { onGuidesChanged: ()
     try {
       const res = await api.completeTrendScan(active.id);
       setCompletionMsg(
-        res.study_guides_regenerated.length
-          ? `Study guides refreshed: ${res.study_guides_regenerated.join(", ")}`
-          : "Scan completed — demand recorded, no guides needed regeneration."
+        res.study_guides_stale.length
+          ? `Demand recorded. ${res.study_guides_stale.length} study guide(s) are now stale — curate them from the Study Room when you're ready: ${res.study_guides_stale.join(", ")}`
+          : "Scan completed — demand recorded, no guides needed refreshing."
       );
       setActive({ ...active, status: "completed" });
       onGuidesChanged(); // Study Room refreshes without a page reload (DoD #4)
