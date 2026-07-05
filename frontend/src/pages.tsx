@@ -344,7 +344,13 @@ export function CareerGrowthPage() {
   }, []);
 
   async function dismissSuggestion(canonicalId: string) {
-    if (!canonicalId) return;
+    if (!canonicalId) {
+      // Should not happen — the backend backfills canonical_id
+      // deterministically — but fail loudly rather than silently doing
+      // nothing if it ever does, so this doesn't look like a dead button.
+      setError("Can't dismiss this suggestion — missing an internal id. Try refreshing the report.");
+      return;
+    }
     try {
       await api.dismissPromoteSuggestion(canonicalId);
       setDismissed((prev) => new Set(prev).add(canonicalId));

@@ -378,5 +378,18 @@ def build_market_fit_report(since: str = "") -> MarketFitReport:
             "generated_at": now,
         }
     )
+    # Deterministic backfill, not a trust-the-LLM pass-through: canonical_id
+    # is what the dismiss button targets, and Gemini does not reliably copy
+    # metadata fields through a synthesis call even when explicitly told to
+    # (confirmed live — every promotable item came back with canonical_id
+    # ""). Re-attach it from the aggregation's own known mapping by matching
+    # on requirement text, which is exact since both sides originate from
+    # the same confirmed_not_promoted_counts dict.
+    known = aggregation["confirmed_not_promoted_counts"]
+    for item in report.promotable_experience_not_yet_in_base_resume:
+        info = known.get(item.requirement)
+        if info:
+            item.canonical_id = info["canonical_id"]
+            item.confirmed_in_applications = info["count"]
     store.save_market_report(report)
     return report
