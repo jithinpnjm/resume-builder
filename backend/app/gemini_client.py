@@ -49,7 +49,15 @@ def generate_json(system_prompt: str, user_content: str) -> dict:
                     response_mime_type="application/json",
                 ),
             )
-            return json.loads(response.text)
+            # response_mime_type="application/json" usually yields a clean
+            # single object, but Gemini occasionally appends trailing
+            # content after it (e.g. a repeated/partial object) even in
+            # JSON mode. json.loads rejects that outright with "Extra
+            # data", so decode just the first object instead of the whole
+            # string.
+            text = response.text.strip()
+            obj, _ = json.JSONDecoder().raw_decode(text)
+            return obj
         except requests.exceptions.ConnectionError as exc:
             last_exc = exc
             if attempt < MAX_NETWORK_RETRIES:
